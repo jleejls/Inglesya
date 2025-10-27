@@ -1,0 +1,33 @@
+<!-- FILE: index.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TDI • Index</title>
+  <style>html,body{height:100%;margin:0;font-family:system-ui,Segoe UI,Roboto,Arial} .center{display:grid;place-items:center;height:100vh}</style>
+</head>
+<body>
+  <div class="center">
+    <div>
+      <h1>Launching TDI…</h1>
+      <p>Routing to the next step.</p>
+    </div>
+  </div>
+
+  <script>
+  (() => {
+    // Version your init flags. Bump to v2 when you change structure/buttons internals.
+    const V = 'tdi.v1.';
+    const didStructure = sessionStorage.getItem(V+'structure') === '1';
+    const didButtons   = sessionStorage.getItem(V+'buttons')   === '1';
+
+    if (!didStructure) { location.replace('./structure.html'); return; }
+    if (!didButtons)   { location.replace('./buttons.html');   return; }
+    location.replace('./lesson_select.html');
+  })();
+  </script>
+</body>
+</html>
+
+

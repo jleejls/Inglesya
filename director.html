@@ -1,0 +1,155 @@
+<!-- FILE: director.html -->
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TDI • Director</title>
+  <style>
+    :root{--pad:12px}
+    body{margin:0;font-family:system-ui}
+    header{display:flex;justify-content:space-between;align-items:center;padding:var(--pad);border-bottom:1px solid #eee}
+    #app{display:grid;grid-template-columns:220px 1fr 220px;gap:var(--pad);padding:var(--pad)}
+    .col{display:grid;gap:var(--pad)}
+    .frame{min-height:120px;border:1px solid #ddd;border-radius:12px;padding:8px;background:#fff}
+    .toolbar{display:flex;gap:8px}
+    .toolbar button{padding:8px 10px;border:1px solid #ddd;border-radius:10px;background:#fafafa;cursor:pointer}
+    .toolbar button:hover{background:#f0f0f0}
+  </style>
+</head>
+<body>
+  <header>
+    <div><strong>Director</strong> • <span id="lessonLabel"></span></div>
+    <div class="toolbar" id="toolbar"></div>
+  </header>
+  <div id="app">
+    <div class="col" id="left"></div>
+    <div class="col" id="center"></div>
+    <div class="col" id="right"></div>
+  </div>
+
+  <audio id="audio-A"></audio>
+  <audio id="audio-B"></audio>
+
+  <script>
+  (() => {
+    const V = 'tdi.v1.';
+
+    // Safety rails: ensure one-time modules are done.
+    if (sessionStorage.getItem(V+'structure') !== '1') { location.replace('./structure.html'); return; }
+    if (sessionStorage.getItem(V+'buttons')   !== '1') { location.replace('./buttons.html');   return; }
+
+    // Read lesson number from query or fallback to lastLesson or 1.
+    const p = new URLSearchParams(location.search);
+    const lesson = parseInt(p.get('lesson') || sessionStorage.getItem(V+'lastLesson') || '1', 10);
+    sessionStorage.setItem(V+'lastLesson', String(lesson));
+    document.getElementById('lessonLabel').textContent = 'Lesson ' + lesson;
+
+    // Fetch specs from initialization modules.
+    const layoutSpec  = JSON.parse(sessionStorage.getItem(V+'layoutSpec')  || '{}');
+    const buttonsSpec = JSON.parse(sessionStorage.getItem(V+'buttonsSpec') || '[]');
+
+    // Render toolbar buttons from spec, then bind behavior.
+    const toolbar = document.getElementById('toolbar');
+    buttonsSpec.forEach(spec => {
+      const btn = document.createElement('button');
+      btn.id = spec.id;
+      btn.textContent = spec.label;
+      toolbar.appendChild(btn);
+    });
+
+    // Bind core actions (expand later as needed).
+    const $ = id => document.getElementById(id);
+    const on = (id, fn) => { const el = $(id); if (el) el.addEventListener('click', fn); };
+
+    on('btn-help', () => {
+      alert('Ayuda: estructura y botones se cargan una sola vez por sesión. Use Choice para cambiar lecciones.');
+    });
+    on('btn-next', () => {
+      const next = Math.min(20, lesson + 1);
+      sessionStorage.setItem(V+'lastLesson', String(next));
+      location.href = `./director.html?lesson=${next}`;
+    });
+    on('btn-choice', () => { location.href = './lesson_select.html'; });
+    on('btn-exit', () => { location.href = './index.html'; });
+    on('btn-email', () => {
+      alert('You will leave the site to send email, then return manually.');
+      location.href = 'mailto:gmail.com-platica';
+    });
+    on('btn-donate', () => { alert('Donation link coming soon.'); });
+
+    // Build the three-column frame layout using layoutSpec. Adjust to your exact design.
+    const left   = $('left');
+    const center = $('center');
+    const right  = $('right');
+
+    function mkFrame(id){
+      const d = document.createElement('div');
+      d.className = 'frame';
+      d.id = id;
+      d.textContent = id; // placeholder label for development
+      return d;
+    }
+
+    // Left two frames
+    (layoutSpec.sideFrames || []).slice(0,2).forEach(f => left.appendChild(mkFrame(f.id)));
+
+    // Center main + objects grid (simple example)
+    center.appendChild(mkFrame(layoutSpec.mainFrame?.id || 'frame-main'));
+    const objWrap = document.createElement('div');
+    objWrap.style.display = 'grid';
+    objWrap.style.gridTemplateColumns = 'repeat(5, 1fr)';
+    objWrap.style.gap = '8px';
+    (layoutSpec.objectFrames || []).forEach(f => objWrap.appendChild(mkFrame(f.id)));
+    center.appendChild(objWrap);
+
+    // Right two frames
+    (layoutSpec.sideFrames || []).slice(2).forEach(f => right.appendChild(mkFrame(f.id)));
+
+    // Example lesson asset loader. Replace with your real asset conventions.
+    async function loadLesson(n){
+      // Images example
+      const imgIds = (layoutSpec.objectFrames || []).map(o => o.id);
+      imgIds.forEach((id, i) => {
+        const el = $(id);
+        if (!el) return;
+        // Replace with your real paths
+        const img = new Image();
+        img.src = `./group/lesson${n}/img_${i+1}.png`;
+        img.alt = `img ${i+1}`;
+        img.style.maxWidth = '100%';
+        img.style.display = 'block';
+        el.innerHTML = '';
+        el.appendChild(img);
+      });
+
+      // Audio example: pronounce + object clips
+      const aA = $('audio-A');
+      const aB = $('audio-B');
+      aA.src = `./group/lesson${n}/audio_pronoun.m4a`;
+      aB.src = `./group/lesson${n}/audio_object.m4a`;
+    }
+
+    loadLesson(lesson);
+
+    // Developer diagnostics: Ctrl+Alt+D to show flags.
+    document.addEventListener('keydown', e => {
+      if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 'd') {
+        alert(JSON.stringify({
+          structure: sessionStorage.getItem(V+'structure'),
+          buttons:   sessionStorage.getItem(V+'buttons'),
+          lastLesson:sessionStorage.getItem(V+'lastLesson')
+        }, null, 2));
+      }
+    });
+
+    // Debug reset helper (optional). Call from console: window.tdiReset()
+    window.tdiReset = function(){
+      ['structure','buttons','lastLesson','layoutSpec','buttonsSpec']
+        .forEach(k => sessionStorage.removeItem(V+k));
+      alert('Setup cleared. Open index.html to re-initialize.');
+    };
+  })();
+  </script>
+</body>
+</html>
