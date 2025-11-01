@@ -1,125 +1,55 @@
-<!-- FILE: structure.html -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TDI • Structure Init</title>
-  <style>html,body{height:100%;margin:0;font-family:system-ui} .center{display:grid;place-items:center;height:100vh}</style>
+  <title>Plática • Structure Init</title>
+  <style>
+    :root{
+      /* Set your placeholder dimensions here if you want fixed sizes.
+         BIG = pronoun slots (***x***), SMALL = object slots (***x***).
+         Example: --BIG-W: 200px; --BIG-H: 200px; --SMALL-W: 120px; --SMALL-H: 120px;
+      */
+      --BIG-W: clamp(100px,12vw,200px);
+      --BIG-H: clamp(100px,12vw,200px);
+      --SMALL-W: clamp(60px,6.5vw,100px);
+      --SMALL-H: clamp(60px,6.5vw,100px);
+      --GAP: min(2vw,16px);
+    }
+    html,body{height:100%;margin:0;font-family:system-ui}
+    .center{display:grid;place-items:center;height:100vh}
+  </style>
 </head>
 <body>
   <div class="center"><h2>Setting up structure…</h2></div>
   <script>
   (() => {
-    const V = 'tdi.v1.';
+    // Module: structure — defines ONLY slot layout + sizes, then hands off.
+    const V = 'tdi.v2.';
 
-    // Define the layout spec once. Director will read this and build DOM quickly.
-    // Adjust to match your real frame counts and IDs.
+    // Define 7 pronoun slots (no main slot): 3 on top row (centered), 4 on bottom row (centered)
+    const pronounFrames = Array.from({length:7}, (_,i) => ({ id: `p-${i+1}` }));
+
+    // Define 10 object slots: 5 on far left column, 5 on far right column
+    const objectFrames  = Array.from({length:10}, (_,i) => ({ id: `o-${i+1}` }));
+
+    // Dimensions per spec (hooked to CSS vars so you can set ***x*** easily)
+    const BIG = { w: getComputedStyle(document.documentElement).getPropertyValue('--BIG-W').trim(),
+                  h: getComputedStyle(document.documentElement).getPropertyValue('--BIG-H').trim() };
+    const SMALL = { w: getComputedStyle(document.documentElement).getPropertyValue('--SMALL-W').trim(),
+                    h: getComputedStyle(document.documentElement).getPropertyValue('--SMALL-H').trim() };
+
     const layoutSpec = {
-      version: '1',
-      mainFrame: { id: 'frame-main', w: 640, h: 360 },
-      sideFrames: [
-        { id: 'frame-left-1' }, { id: 'frame-left-2' },
-        { id: 'frame-right-1' }, { id: 'frame-right-2' }
-      ],
-      objectFrames: Array.from({length: 7}, (_,i) => ({ id: `obj-${i+1}` })),
-      placeholders: { audioA: 'audio-A', audioB: 'audio-B' }
+      version: '2',
+      pronounFrames, // 7
+      objectFrames,  // 10
+      sizes: { BIG, SMALL },
+      gap: getComputedStyle(document.documentElement).getPropertyValue('--GAP').trim()
     };
 
     sessionStorage.setItem(V+'layoutSpec', JSON.stringify(layoutSpec));
-
-    // Mark complete and move forward.
     sessionStorage.setItem(V+'structure', '1');
     location.replace('./buttons.html');
-  })();
-  </script>
-</body>
-</html>
-
-
-<!-- FILE: buttons.html -->
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TDI • Buttons Init</title>
-  <style>html,body{height:100%;margin:0;font-family:system-ui} .center{display:grid;place-items:center;height:100vh}</style>
-</head>
-<body>
-  <div class="center"><h2>Wiring controls…</h2></div>
-
-  <script>
-  (() => {
-    const V = 'tdi.v1.';
-
-    // Declare what global controls exist. Director will render and bind them.
-    const buttonsSpec = [
-      { id: 'btn-help',      label: 'Help' },
-      { id: 'btn-next',      label: 'Next' },
-      { id: 'btn-choice',    label: 'Choice' },
-      { id: 'btn-exit',      label: 'Exit' },
-      { id: 'btn-email',     label: 'Email' },
-      { id: 'btn-donate',    label: 'Donate' }
-    ];
-
-    sessionStorage.setItem(V+'buttonsSpec', JSON.stringify(buttonsSpec));
-
-    // Optional: warm up Lesson 1 assets so first load feels instant.
-    // Update paths to match your repo structure.
-    const prewarmImages = [
-      './group/lesson1/img_1.png',
-      './group/lesson1/img_2.png'
-    ];
-    prewarmImages.forEach(src => { const i = new Image(); i.src = src; });
-
-    sessionStorage.setItem(V+'buttons', '1');
-    location.replace('./lesson_select.html');
-  })();
-  </script>
-</body>
-</html>
-
-
-<!-- FILE: lesson_select.html -->
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TDI • Select Lesson</title>
-  <style>
-    body{margin:0;font-family:system-ui}
-    header{padding:12px 16px;border-bottom:1px solid #eee}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;padding:16px}
-    button{padding:12px;border-radius:10px;border:1px solid #ddd;background:#fafafa;cursor:pointer}
-    button:hover{background:#f0f0f0}
-  </style>
-</head>
-<body>
-  <header><h2>Choose a lesson</h2></header>
-  <div class="grid" id="lessons"></div>
-
-  <script>
-  (() => {
-    const V = 'tdi.v1.';
-
-    // Safety rails if someone jumps here directly.
-    if (sessionStorage.getItem(V+'structure') !== '1') { location.replace('./structure.html'); return; }
-    if (sessionStorage.getItem(V+'buttons')   !== '1') { location.replace('./buttons.html');   return; }
-
-    const total = 20; // adjust to your real count
-    const grid = document.getElementById('lessons');
-
-    for (let n=1; n<=total; n++) {
-      const b = document.createElement('button');
-      b.textContent = 'Lesson ' + n;
-      b.onclick = () => {
-        sessionStorage.setItem(V+'lastLesson', String(n));
-        location.href = `./director.html?lesson=${n}`;
-      };
-      grid.appendChild(b);
-    }
   })();
   </script>
 </body>

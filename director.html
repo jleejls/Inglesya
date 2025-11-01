@@ -1,160 +1,161 @@
-<!-- FILE: director.html -->
 <!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TDI • Director</title>
+  <title>Plática • Director</title>
   <style>
-    :root{--pad:12px}
+    :root{ --pad:12px }
+    *{box-sizing:border-box}
     body{margin:0;font-family:system-ui}
     header{display:flex;justify-content:space-between;align-items:center;padding:var(--pad);border-bottom:1px solid #eee}
-    #app{display:grid;grid-template-columns:220px 1fr 220px;gap:var(--pad);padding:var(--pad)}
-    .col{display:grid;gap:var(--pad)}
-    .frame{min-height:120px;border:1px solid #ddd;border-radius:12px;padding:8px;background:#fff}
-    .toolbar{display:flex;gap:8px}
-    .toolbar button{padding:8px 10px;border:1px solid #ddd;border-radius:10px;background:#fafafa;cursor:pointer}
-    .toolbar button:hover{background:#f0f0f0}
+    #stage{display:grid;grid-template-columns:auto 1fr auto;gap:var(--pad);padding:var(--pad);min-height:calc(100vh - 120px)}
+
+    /* Side columns (object slots) */
+    .side{display:grid;gap:var(--pad)}
+    .side .slot{width:var(--SMALL);height:var(--SMALL)}
+
+    /* Center column (pronoun slots in two centered rows) */
+    .centerWrap{display:grid;grid-template-rows:auto auto 1fr;gap:var(--pad);}
+    .row{display:grid;justify-content:center;gap:var(--pad)}
+    .row.top{grid-template-columns:repeat(3, var(--BIG));}
+    .row.bottom{grid-template-columns:repeat(4, var(--BIG));}
+
+    .slot{border:1px solid #ddd;border-radius:12px;background:#fff;display:grid;place-items:center;overflow:hidden}
+    .slot img{max-width:100%;max-height:100%;display:block}
+
+    /* Bottom buttons bar (single row, centered) */
+    #buttonsBar{position:sticky;bottom:0;background:#fff;border-top:1px solid #eee;padding:10px;display:flex;justify-content:center;gap:10px}
+    #buttonsBar button{width:var(--BTN-W);height:var(--BTN-H);border-radius:var(--BTN-R);border:1px solid #ddd;background:#fafafa;cursor:pointer}
+    #buttonsBar button:hover{background:#f0f0f0}
+
+    /* Lesson badge (lower-right) */
+    #lessonBadge{position:fixed;right:12px;bottom:12px;opacity:.85;background:#000;color:#fff;padding:6px 10px;border-radius:10px;font-size:.9rem}
   </style>
 </head>
 <body>
   <header>
-    <div><strong>Director</strong> • <span id="lessonLabel"></span></div>
-    <div class="toolbar" id="toolbar"></div>
+    <div><strong>Director</strong></div>
+    <div id="toolbar"></div>
   </header>
-  <div id="app">
-    <div class="col" id="left"></div>
-    <div class="col" id="center"></div>
-    <div class="col" id="right"></div>
+
+  <div id="stage">
+    <div class="side" id="leftCol"></div>
+    <div class="centerWrap">
+      <div class="row top" id="p-row-1"></div>
+      <div class="row bottom" id="p-row-2"></div>
+      <div style="min-height:1px"></div>
+    </div>
+    <div class="side" id="rightCol"></div>
   </div>
+
+  <div id="buttonsBar"></div>
+  <div id="lessonBadge"></div>
 
   <audio id="audio-A"></audio>
   <audio id="audio-B"></audio>
 
   <script>
   (() => {
-    const V = 'tdi.v1.';
+    const V = 'tdi.v2.';
 
-    // Safety rails: ensure one-time modules are done.
+    // Safety rails
     if (sessionStorage.getItem(V+'structure') !== '1') { location.replace('./structure.html'); return; }
     if (sessionStorage.getItem(V+'buttons')   !== '1') { location.replace('./buttons.html');   return; }
 
-    // Read lesson number from query or fallback to lastLesson or 1.
+    // Sizes from structure module
+    const spec = JSON.parse(sessionStorage.getItem(V+'layoutSpec') || '{}');
+    const sizes = spec.sizes || { BIG:{w:'clamp(100px,12vw,200px)',h:'clamp(100px,12vw,200px)'}, SMALL:{w:'clamp(60px,6.5vw,100px)',h:'clamp(60px,6.5vw,100px)'} };
+
+    // Apply CSS custom properties
+    document.documentElement.style.setProperty('--BIG', sizes.BIG.w);
+    document.documentElement.style.setProperty('--SMALL', sizes.SMALL.w);
+
+    // Button style (dimensions and radius) from buttons module (placeholders allowed)
+    const bStyle = JSON.parse(sessionStorage.getItem(V+'buttonStyle') || '{}');
+    if (bStyle.w) document.documentElement.style.setProperty('--BTN-W', bStyle.w);
+    if (bStyle.h) document.documentElement.style.setProperty('--BTN-H', bStyle.h);
+    if (bStyle.r) document.documentElement.style.setProperty('--BTN-R', bStyle.r);
+
+    // Lesson number
     const p = new URLSearchParams(location.search);
-    const lesson = parseInt(p.get('lesson') || sessionStorage.getItem(V+'lastLesson') || '1', 10);
-    sessionStorage.setItem(V+'lastLesson', String(lesson));
-    document.getElementById('lessonLabel').textContent = 'Lesson ' + lesson;
+    const lesson = parseInt(p.get('lesson') || '1', 10);
+    document.getElementById('lessonBadge').textContent = 'Lesson ' + lesson;
 
-    // Fetch specs from initialization modules.
-    const layoutSpec  = JSON.parse(sessionStorage.getItem(V+'layoutSpec')  || '{}');
+    // Build object columns
+    const left = document.getElementById('leftCol');
+    const right = document.getElementById('rightCol');
+    const objs = spec.objectFrames || [];
+    objs.slice(0,5).forEach(f => left.appendChild(makeSlot(f.id, true)));
+    objs.slice(5).forEach(f => right.appendChild(makeSlot(f.id, true)));
+
+    // Build pronoun rows (3 then 4, centered)
+    const p1 = document.getElementById('p-row-1');
+    const p2 = document.getElementById('p-row-2');
+    (spec.pronounFrames || []).slice(0,3).forEach(f => p1.appendChild(makeSlot(f.id, false)));
+    (spec.pronounFrames || []).slice(3).forEach(f => p2.appendChild(makeSlot(f.id, false)));
+
+    // Bottom buttons row
+    const bar = document.getElementById('buttonsBar');
     const buttonsSpec = JSON.parse(sessionStorage.getItem(V+'buttonsSpec') || '[]');
-
-    // Render toolbar buttons from spec, then bind behavior.
-    const toolbar = document.getElementById('toolbar');
-    buttonsSpec.forEach(spec => {
+    buttonsSpec.forEach(b => {
       const btn = document.createElement('button');
-      btn.id = spec.id;
-      btn.textContent = spec.label;
-      toolbar.appendChild(btn);
+      btn.id = b.id;
+      btn.textContent = b.label || b.id;
+      bar.appendChild(btn);
     });
 
-    // Bind core actions (expand later as needed).
-    const $ = id => document.getElementById(id);
-    const on = (id, fn) => { const el = $(id); if (el) el.addEventListener('click', fn); };
+    // Core button actions
+    on('btn-1', () => alert('Button 1'));
+    on('btn-2', () => alert('Button 2'));
+    on('btn-3', () => alert('Button 3'));
+    on('btn-4', () => alert('Button 4'));
+    on('btn-5', () => alert('Button 5'));
+    on('btn-6', () => alert('Button 6'));
+    on('btn-7', () => { location.href = './lesson_select.html'; });
 
-    on('btn-help', () => {
-      alert('Ayuda: estructura y botones se cargan una sola vez por sesión. Use Choice para cambiar lecciones.');
-    });
-    on('btn-next', () => {
-      const next = Math.min(20, lesson + 1);
-      sessionStorage.setItem(V+'lastLesson', String(next));
-      location.href = `./director.html?lesson=${next}`;
-    });
-    on('btn-choice', () => { location.href = './lesson_select.html'; });
-    on('btn-exit', () => { location.href = './index.html'; });
-    on('btn-email', () => {
-      alert('You will leave the site to send email, then return manually.');
-      location.href = 'mailto:gmail.com-platica';
-    });
-    on('btn-donate', () => { alert('Donation link coming soon.'); });
-
-    // Build the three-column frame layout using layoutSpec. Adjust to your exact design.
-    const left   = $('left');
-    const center = $('center');
-    const right  = $('right');
-
-    function mkFrame(id){
-      const d = document.createElement('div');
-      d.className = 'frame';
-      d.id = id;
-      d.textContent = id; // placeholder label for development
-      return d;
-    }
-
-    // Left two frames
-    (layoutSpec.sideFrames || []).slice(0,2).forEach(f => left.appendChild(mkFrame(f.id)));
-
-    // Center main + objects grid (simple example)
-    center.appendChild(mkFrame(layoutSpec.mainFrame?.id || 'frame-main'));
-    const objWrap = document.createElement('div');
-    objWrap.style.display = 'grid';
-    objWrap.style.gridTemplateColumns = 'repeat(5, 1fr)';
-    objWrap.style.gap = '8px';
-    (layoutSpec.objectFrames || []).forEach(f => objWrap.appendChild(mkFrame(f.id)));
-    center.appendChild(objWrap);
-
-    // Right two frames
-    (layoutSpec.sideFrames || []).slice(2).forEach(f => right.appendChild(mkFrame(f.id)));
-
-    // Example lesson asset loader. Replace with your real asset conventions.
-    async function loadLesson(n){
-      // Images example
-      const imgIds = (layoutSpec.objectFrames || []).map(o => o.id);
-      imgIds.forEach((id, i) => {
-        const el = $(id);
-        if (!el) return;
-        // Replace with your real paths
-        const img = new Image();
-     
-//***********
-        img.src = `./group/lesson${n}/images/img_${i+1}.png`;
-         // img.src = `./group/lesson${n}/img_${i+1}.png`;
-         //img.src = `./group/lesson${n}/images/p1.png`;
-//***********
-
-        img.alt = `img ${i+1}`;
-        img.style.maxWidth = '100%';
-        img.style.display = 'block';
-        el.innerHTML = '';
-        el.appendChild(img);
-      });
-
-      // Audio example: pronounce + object clips
-      const aA = $('audio-A');
-      const aB = $('audio-B');
-      aA.src = `./group/lesson${n}/audio_pronoun.m4a`;
-      aB.src = `./group/lesson${n}/audio_object.m4a`;
-    }
-
+    // Load lesson assets into their proper slots
     loadLesson(lesson);
 
-    // Developer diagnostics: Ctrl+Alt+D to show flags.
-    document.addEventListener('keydown', e => {
-      if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 'd') {
-        alert(JSON.stringify({
-          structure: sessionStorage.getItem(V+'structure'),
-          buttons:   sessionStorage.getItem(V+'buttons'),
-          lastLesson:sessionStorage.getItem(V+'lastLesson')
-        }, null, 2));
-      }
-    });
+    // Helpers
+    function makeSlot(id, isSmall){
+      const d = document.createElement('div');
+      d.className = 'slot';
+      d.id = id;
+      d.style.width  = isSmall ? sizes.SMALL.w : sizes.BIG.w;
+      d.style.height = isSmall ? sizes.SMALL.h : sizes.BIG.h;
+      d.style.margin = spec.gap || 'min(2vw,16px)';
+      return d;
+    }
+    function $(id){ return document.getElementById(id); }
+    function on(id, fn){ const el = $(id); if (el) el.addEventListener('click', fn); }
 
-    // Debug reset helper (optional). Call from console: window.tdiReset()
-    window.tdiReset = function(){
-      ['structure','buttons','lastLesson','layoutSpec','buttonsSpec']
-        .forEach(k => sessionStorage.removeItem(V+k));
-      alert('Setup cleared. Open index.html to re-initialize.');
-    };
+    function loadLesson(n){
+      // Mapping: first 7 images → pronoun frames, next 10 images → object frames
+      const pronouns = (spec.pronounFrames || []).map(f => f.id);
+      const objects  = (spec.objectFrames  || []).map(f => f.id);
+
+      function setImg(slotId, src){
+        const el = $(slotId); if (!el) return;
+        const img = new Image();
+        img.src = `./group/lesson${n}/images/img_${src}.png`;
+        img.alt = `img ${src}`;
+        img.onload = () => { el.innerHTML = ''; el.appendChild(img); };
+        img.onerror = () => { el.textContent = `missing: img_${src}.png`; };
+      }
+
+      pronouns.forEach((id, i) => setImg(id, i+1));            // img_1 … img_7
+      objects.forEach((id, i)  => setImg(id, i+8));            // img_8 … img_17
+
+      // Audio paths per spec
+      const aA = $('audio-A');
+      const aB = $('audio-B');
+      aA.src = `./group/lesson${n}/audios/pronoun.m4a`;
+      aB.src = `./group/lesson${n}/audios/object.m4a`;
+      // Fallbacks commonly used in your older files
+      aA.onerror = () => aA.src = `./group/lesson${n}/audio_pronoun.m4a`;
+      aB.onerror = () => aB.src = `./group/lesson${n}/audio_object.m4a`;
+    }
   })();
   </script>
 </body>

@@ -1,42 +1,54 @@
-<!-- FILE: lesson_select.html -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TDI • Select Lesson</title>
+  <title>Plática • Select Lesson</title>
   <style>
+    :root{ --pad:12px }
     body{margin:0;font-family:system-ui}
-    header{padding:12px 16px;border-bottom:1px solid #eee}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;padding:16px}
+    header{padding:var(--pad);border-bottom:1px solid #eee;text-align:center}
+    .wrap{display:grid;place-items:center;padding:16px}
+    .twoCols{display:grid;grid-template-columns:repeat(2, minmax(220px, 1fr));gap:12px}
+    .col{display:grid;grid-template-rows:repeat(10, auto);gap:12px}
     button{padding:12px;border-radius:10px;border:1px solid #ddd;background:#fafafa;cursor:pointer}
     button:hover{background:#f0f0f0}
+    .label{opacity:.6;font-size:.9rem}
   </style>
 </head>
 <body>
   <header><h2>Choose a lesson</h2></header>
-  <div class="grid" id="lessons"></div>
+  <div class="wrap">
+    <div class="twoCols" id="pick"></div>
+  </div>
 
   <script>
   (() => {
-    const V = 'tdi.v1.';
-
-    // Safety rails if someone jumps here directly.
+    const V = 'tdi.v2.';
+    // Safety rails
     if (sessionStorage.getItem(V+'structure') !== '1') { location.replace('./structure.html'); return; }
     if (sessionStorage.getItem(V+'buttons')   !== '1') { location.replace('./buttons.html');   return; }
 
-    const total = 20; // adjust to your real count
-    const grid = document.getElementById('lessons');
+    const mount = document.getElementById('pick');
 
-    for (let n=1; n<=total; n++) {
-      const b = document.createElement('button');
-      b.textContent = 'Lesson ' + n;
-      b.onclick = () => {
-        sessionStorage.setItem(V+'lastLesson', String(n));
-        location.href = `./director.html?lesson=${n}`;
-      };
-      grid.appendChild(b);
+    function makeColumn(start){
+      const col = document.createElement('div');
+      col.className = 'col';
+      for (let n = start; n < start+10; n++) {
+        const b = document.createElement('button');
+        const label = document.createElement('div');
+        label.className = 'label';
+        label.textContent = '(verb placeholder)';
+        b.innerHTML = `<strong>Lesson ${n}</strong><br>`;
+        b.appendChild(label);
+        b.onclick = () => { location.href = `./director.html?lesson=${n}`; };
+        col.appendChild(b);
+      }
+      return col;
     }
+
+    mount.appendChild(makeColumn(1));
+    mount.appendChild(makeColumn(11));
   })();
   </script>
 </body>
