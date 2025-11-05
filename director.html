@@ -1,36 +1,46 @@
+<!-- FILE: director.html -->
 <!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>inglesya • Director</title>
+  <title>TDI • Director</title>
   <style>
     :root{ --pad:12px }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui}
-    header{display:flex;justify-content:space-between;align-items:center;padding:var(--pad);border-bottom:1px solid #eee}
-    #stage{display:grid;grid-template-columns:auto 1fr auto;gap:var(--pad);padding:var(--pad);min-height:calc(100vh - 120px)}
+    *{ box-sizing: border-box }
+    body{ margin:0; font-family: system-ui; background:#fcfcfc }
+    header{ display:flex; justify-content:space-between; align-items:center; padding:var(--pad); border-bottom:1px solid #eee }
+    #stage{ display:grid; grid-template-columns:auto 1fr auto; gap:var(--pad); padding:var(--pad); min-height:calc(100vh - 120px) }
 
-    /* Side columns (object slots) */
-    .side{display:grid;gap:var(--pad)}
-    .side .slot{width:var(--SMALL);height:var(--SMALL)}
+    /* Side columns = 10 object slots (5 left, 5 right) */
+    .side{ display:grid; gap:var(--pad) }
 
-    /* Center column (pronoun slots in two centered rows) */
-    .centerWrap{display:grid;grid-template-rows:auto auto 1fr;gap:var(--pad);}
-    .row{display:grid;justify-content:center;gap:var(--pad)}
-    .row.top{grid-template-columns:repeat(3, var(--BIG));}
-    .row.bottom{grid-template-columns:repeat(4, var(--BIG));}
+    /* Center column = 7 pronoun slots (3 on top row, 4 on bottom row), centered */
+    .centerWrap{ display:grid; grid-template-rows:auto auto 1fr; gap:var(--pad); }
+    .row{ display:grid; justify-content:center; gap:var(--pad) }
+    .row.top{ grid-template-columns: repeat(3, var(--BIG-W)) }
+    .row.bottom{ grid-template-columns: repeat(4, var(--BIG-W)) }
 
-    .slot{border:1px solid #ddd;border-radius:12px;background:#fff;display:grid;place-items:center;overflow:hidden}
-    .slot img{max-width:100%;max-height:100%;display:block}
+    /* Generic slot */
+    .slot{
+      border:1px solid #ddd; border-radius:12px; background:#fff;
+      display:grid; place-items:center; overflow:hidden
+    }
+    .slot img{ max-width:100%; max-height:100%; display:block }
 
-    /* Bottom buttons bar (single row, centered) */
-    #buttonsBar{position:sticky;bottom:0;background:#fff;border-top:1px solid #eee;padding:10px;display:flex;justify-content:center;gap:10px}
-    #buttonsBar button{width:var(--BTN-W);height:var(--BTN-H);border-radius:var(--BTN-R);border:1px solid #ddd;background:#fafafa;cursor:pointer}
-    #buttonsBar button:hover{background:#f0f0f0}
+    /* Bottom buttons bar */
+    #buttonsBar{
+      position:sticky; bottom:0; background:#fff; border-top:1px solid #eee;
+      padding:10px; display:flex; justify-content:center; gap:10px
+    }
+    #buttonsBar button{
+      width:var(--BTN-W, 120px); height:var(--BTN-H, 42px);
+      border-radius:var(--BTN-R, 10px); border:1px solid #ddd; background:#fafafa; cursor:pointer
+    }
+    #buttonsBar button:hover{ background:#f0f0f0 }
 
-    /* Lesson badge (lower-right) */
-    #lessonBadge{position:fixed;right:12px;bottom:12px;opacity:.85;background:#000;color:#fff;padding:6px 10px;border-radius:10px;font-size:.9rem}
+    /* Lesson badge */
+    #lessonBadge{ position:fixed; right:12px; bottom:12px; opacity:.85; background:#000; color:#fff; padding:6px 10px; border-radius:10px; font-size:.9rem }
   </style>
 </head>
 <body>
@@ -52,50 +62,59 @@
   <div id="buttonsBar"></div>
   <div id="lessonBadge"></div>
 
-  <audio id="audio-A"></audio>
-  <audio id="audio-B"></audio>
+  <!-- One shared audio element (click-only) -->
+  <audio id="audio-main"></audio>
 
   <script>
   (() => {
     const V = 'tdi.v2.';
 
-    // Safety rails
+    /* Safety rails: require structure + buttons modules to have run first */
     if (sessionStorage.getItem(V+'structure') !== '1') { location.replace('./structure.html'); return; }
     if (sessionStorage.getItem(V+'buttons')   !== '1') { location.replace('./buttons.html');   return; }
 
-    // Sizes from structure module
+    /* Pull layout spec (frames + sizes + gap) defined by structure module */
     const spec = JSON.parse(sessionStorage.getItem(V+'layoutSpec') || '{}');
-    const sizes = spec.sizes || { BIG:{w:'clamp(100px,12vw,200px)',h:'clamp(100px,12vw,200px)'}, SMALL:{w:'clamp(60px,6.5vw,100px)',h:'clamp(60px,6.5vw,100px)'} };
+    const sizes = spec.sizes || {};
+    const GAP   = spec.gap || 'min(2vw,16px)';
 
-    // Apply CSS custom properties
-    document.documentElement.style.setProperty('--BIG', sizes.BIG.w);
-    document.documentElement.style.setProperty('--SMALL', sizes.SMALL.w);
+    /* Apply sizes to CSS vars so rows render correctly */
+    if (sizes.BIG) {
+      document.documentElement.style.setProperty('--BIG-W', sizes.BIG.w || 'clamp(100px,12vw,200px)');
+      document.documentElement.style.setProperty('--BIG-H', sizes.BIG.h || 'clamp(100px,12vw,200px)');
+    }
+    if (sizes.SMALL) {
+      document.documentElement.style.setProperty('--SMALL-W', sizes.SMALL.w || 'clamp(60px,6.5vw,100px)');
+      document.documentElement.style.setProperty('--SMALL-H', sizes.SMALL.h || 'clamp(60px,6.5vw,100px)');
+    }
 
-    // Button style (dimensions and radius) from buttons module (placeholders allowed)
+    /* Optional: button style coming from buttons module */
     const bStyle = JSON.parse(sessionStorage.getItem(V+'buttonStyle') || '{}');
     if (bStyle.w) document.documentElement.style.setProperty('--BTN-W', bStyle.w);
     if (bStyle.h) document.documentElement.style.setProperty('--BTN-H', bStyle.h);
     if (bStyle.r) document.documentElement.style.setProperty('--BTN-R', bStyle.r);
 
-    // Lesson number
-    const p = new URLSearchParams(location.search);
-    const lesson = parseInt(p.get('lesson') || '1', 10);
+    /* Lesson param */
+    const params = new URLSearchParams(location.search);
+    const lesson = parseInt(params.get('lesson') || '1', 10);
     document.getElementById('lessonBadge').textContent = 'Lesson ' + lesson;
 
-    // Build object columns
-    const left = document.getElementById('leftCol');
+    /* Build columns/rows (Director paints DOM from Structure's blueprint) */
+    const left  = document.getElementById('leftCol');
     const right = document.getElementById('rightCol');
-    const objs = spec.objectFrames || [];
-    objs.slice(0,5).forEach(f => left.appendChild(makeSlot(f.id, true)));
-    objs.slice(5).forEach(f => right.appendChild(makeSlot(f.id, true)));
+    const pTop  = document.getElementById('p-row-1');
+    const pBot  = document.getElementById('p-row-2');
 
-    // Build pronoun rows (3 then 4, centered)
-    const p1 = document.getElementById('p-row-1');
-    const p2 = document.getElementById('p-row-2');
-    (spec.pronounFrames || []).slice(0,3).forEach(f => p1.appendChild(makeSlot(f.id, false)));
-    (spec.pronounFrames || []).slice(3).forEach(f => p2.appendChild(makeSlot(f.id, false)));
+    const pronounFrames = (spec.pronounFrames || []).map(f => f.id); // p-1..p-7
+    const objectFrames  = (spec.objectFrames  || []).map(f => f.id); // o-1..o-10
 
-    // Bottom buttons row
+    /* Create slots */
+    pronounFrames.slice(0,3).forEach(id => pTop.appendChild(makeSlot(id, false)));
+    pronounFrames.slice(3).forEach(id => pBot.appendChild(makeSlot(id, false)));
+    objectFrames.slice(0,5).forEach(id => left.appendChild(makeSlot(id, true)));
+    objectFrames.slice(5).forEach(id => right.appendChild(makeSlot(id, true)));
+
+    /* Build bottom buttons row */
     const bar = document.getElementById('buttonsBar');
     const buttonsSpec = JSON.parse(sessionStorage.getItem(V+'buttonsSpec') || '[]');
     buttonsSpec.forEach(b => {
@@ -104,8 +123,6 @@
       btn.textContent = b.label || b.id;
       bar.appendChild(btn);
     });
-
-    // Core button actions
     on('btn-1', () => alert('Button 1'));
     on('btn-2', () => alert('Button 2'));
     on('btn-3', () => alert('Button 3'));
@@ -114,47 +131,70 @@
     on('btn-6', () => alert('Button 6'));
     on('btn-7', () => { location.href = './lesson_select.html'; });
 
-    // Load lesson assets into their proper slots
-    loadLesson(lesson);
+    /* Load assets and wire click-to-play (separate namespaces for pronouns/objects) */
+    loadPronouns(lesson);
+    loadObjects(lesson);
 
-    // Helpers
+    /* Helpers */
     function makeSlot(id, isSmall){
       const d = document.createElement('div');
       d.className = 'slot';
       d.id = id;
-      d.style.width  = isSmall ? sizes.SMALL.w : sizes.BIG.w;
-      d.style.height = isSmall ? sizes.SMALL.h : sizes.BIG.h;
-      d.style.margin = spec.gap || 'min(2vw,16px)';
+      d.style.width  = isSmall ? get('--SMALL-W') : get('--BIG-W');
+      d.style.height = isSmall ? get('--SMALL-H') : get('--BIG-H');
+      d.style.margin = GAP;
       return d;
     }
     function $(id){ return document.getElementById(id); }
     function on(id, fn){ const el = $(id); if (el) el.addEventListener('click', fn); }
+    function get(varName){ return getComputedStyle(document.documentElement).getPropertyValue(varName).trim(); }
+    function pad2(n){ return String(n).padStart(2, '0'); }
 
-    function loadLesson(n){
-      // Mapping: first 7 images → pronoun frames, next 10 images → object frames
-      const pronouns = (spec.pronounFrames || []).map(f => f.id);
-      const objects  = (spec.objectFrames  || []).map(f => f.id);
+    function setImageAndClick(slotId, imgSrc, audioSrc){
+      const el = $(slotId); if (!el) return;
+      const img = new Image();
+      img.src = imgSrc;
+      img.alt = slotId;
+      img.onload = () => {
+        el.innerHTML = '';
+        el.appendChild(img);
+        img.addEventListener('click', () => playAudio(audioSrc));
+      };
+      img.onerror = () => { el.textContent = 'missing: ' + imgSrc.split('/').pop(); };
+    }
 
-      function setImg(slotId, src){
-        const el = $(slotId); if (!el) return;
-        const img = new Image();
-        img.src = `./group/lesson${n}/images/img_${src}.png`;
-        img.alt = `img ${src}`;
-        img.onload = () => { el.innerHTML = ''; el.appendChild(img); };
-        img.onerror = () => { el.textContent = `missing: img_${src}.png`; };
-      }
+    /* One shared audio element; click-only */
+    const audioEl = $('audio-main');
+    function playAudio(src){
+      try {
+        audioEl.pause();
+        audioEl.currentTime = 0;
+      } catch(_) {}
+      audioEl.src = src;
+      audioEl.play().catch(() => {
+        // Non-blocking: if autoplay is disallowed or file missing, just log it.
+        console.warn('Audio play failed for', src);
+      });
+    }
 
-      pronouns.forEach((id, i) => setImg(id, i+1));            // img_1 … img_7
-      objects.forEach((id, i)  => setImg(id, i+8));            // img_8 … img_17
+    /* Pronouns: P1..P7 (images + audios) */
+    function loadPronouns(n){
+      pronounFrames.forEach((slotId, i) => {
+        const idx = i + 1; // 1..7
+        const img = `./group/lesson${n}/pronouns/images/P${idx}.png`;
+        const aud = `./group/lesson${n}/pronouns/audios/P${idx}.m4a`;
+        setImageAndClick(slotId, img, aud);
+      });
+    }
 
-      // Audio paths per spec
-      const aA = $('audio-A');
-      const aB = $('audio-B');
-      aA.src = `./group/lesson${n}/audios/pronoun.m4a`;
-      aB.src = `./group/lesson${n}/audios/object.m4a`;
-      // Fallbacks commonly used in your older files
-      aA.onerror = () => aA.src = `./group/lesson${n}/audio_pronoun.m4a`;
-      aB.onerror = () => aB.src = `./group/lesson${n}/audio_object.m4a`;
+    /* Objects: 01..10 (images + audios) */
+    function loadObjects(n){
+      objectFrames.forEach((slotId, i) => {
+        const code = pad2(i + 1); // 01..10
+        const img = `./group/lesson${n}/objects/images/${code}.png`;
+        const aud = `./group/lesson${n}/objects/audios/${code}.m4a`;
+        setImageAndClick(slotId, img, aud);
+      });
     }
   })();
   </script>
