@@ -1,4 +1,3 @@
-<!-- FILE: director.html -->
 <!doctype html>
 <html lang="es">
 <head>
@@ -12,23 +11,19 @@
     header{ display:flex; justify-content:space-between; align-items:center; padding:var(--pad); border-bottom:1px solid #eee }
     #stage{ display:grid; grid-template-columns:auto 1fr auto; gap:var(--pad); padding:var(--pad); min-height:calc(100vh - 120px) }
 
-    /* Side columns = 10 object slots (5 left, 5 right) */
     .side{ display:grid; gap:var(--pad) }
 
-    /* Center column = 7 pronoun slots (3 on top row, 4 on bottom row), centered */
     .centerWrap{ display:grid; grid-template-rows:auto auto 1fr; gap:var(--pad); }
     .row{ display:grid; justify-content:center; gap:var(--pad) }
     .row.top{ grid-template-columns: repeat(3, var(--BIG-W)) }
     .row.bottom{ grid-template-columns: repeat(4, var(--BIG-W)) }
 
-    /* Generic slot */
     .slot{
       border:1px solid #ddd; border-radius:12px; background:#fff;
       display:grid; place-items:center; overflow:hidden
     }
     .slot img{ max-width:100%; max-height:100%; display:block }
 
-    /* Bottom buttons bar */
     #buttonsBar{
       position:sticky; bottom:0; background:#fff; border-top:1px solid #eee;
       padding:10px; display:flex; justify-content:center; gap:10px
@@ -39,7 +34,6 @@
     }
     #buttonsBar button:hover{ background:#f0f0f0 }
 
-    /* Lesson badge */
     #lessonBadge{ position:fixed; right:12px; bottom:12px; opacity:.85; background:#000; color:#fff; padding:6px 10px; border-radius:10px; font-size:.9rem }
   </style>
 </head>
@@ -69,16 +63,15 @@
   (() => {
     const V = 'tdi.v2.';
 
-    /* Safety rails: require structure + buttons modules to have run first */
+    // Require structure + buttons to have run
     if (sessionStorage.getItem(V+'structure') !== '1') { location.replace('./structure.html'); return; }
     if (sessionStorage.getItem(V+'buttons')   !== '1') { location.replace('./buttons.html');   return; }
 
-    /* Pull layout spec (frames + sizes + gap) defined by structure module */
+    // Layout spec from structure
     const spec = JSON.parse(sessionStorage.getItem(V+'layoutSpec') || '{}');
     const sizes = spec.sizes || {};
     const GAP   = spec.gap || 'min(2vw,16px)';
 
-    /* Apply sizes to CSS vars so rows render correctly */
     if (sizes.BIG) {
       document.documentElement.style.setProperty('--BIG-W', sizes.BIG.w || 'clamp(100px,12vw,200px)');
       document.documentElement.style.setProperty('--BIG-H', sizes.BIG.h || 'clamp(100px,12vw,200px)');
@@ -88,18 +81,18 @@
       document.documentElement.style.setProperty('--SMALL-H', sizes.SMALL.h || 'clamp(60px,6.5vw,100px)');
     }
 
-    /* Optional: button style coming from buttons module */
+    // Optional button style
     const bStyle = JSON.parse(sessionStorage.getItem(V+'buttonStyle') || '{}');
     if (bStyle.w) document.documentElement.style.setProperty('--BTN-W', bStyle.w);
     if (bStyle.h) document.documentElement.style.setProperty('--BTN-H', bStyle.h);
     if (bStyle.r) document.documentElement.style.setProperty('--BTN-R', bStyle.r);
 
-    /* Lesson param */
+    // Lesson
     const params = new URLSearchParams(location.search);
     const lesson = parseInt(params.get('lesson') || '1', 10);
     document.getElementById('lessonBadge').textContent = 'Lesson ' + lesson;
 
-    /* Build columns/rows (Director paints DOM from Structure's blueprint) */
+    // Build grid from blueprint
     const left  = document.getElementById('leftCol');
     const right = document.getElementById('rightCol');
     const pTop  = document.getElementById('p-row-1');
@@ -108,13 +101,12 @@
     const pronounFrames = (spec.pronounFrames || []).map(f => f.id); // p-1..p-7
     const objectFrames  = (spec.objectFrames  || []).map(f => f.id); // o-1..o-10
 
-    /* Create slots */
     pronounFrames.slice(0,3).forEach(id => pTop.appendChild(makeSlot(id, false)));
     pronounFrames.slice(3).forEach(id => pBot.appendChild(makeSlot(id, false)));
     objectFrames.slice(0,5).forEach(id => left.appendChild(makeSlot(id, true)));
     objectFrames.slice(5).forEach(id => right.appendChild(makeSlot(id, true)));
 
-    /* Build bottom buttons row */
+    // Buttons
     const bar = document.getElementById('buttonsBar');
     const buttonsSpec = JSON.parse(sessionStorage.getItem(V+'buttonsSpec') || '[]');
     buttonsSpec.forEach(b => {
@@ -131,11 +123,11 @@
     on('btn-6', () => alert('Button 6'));
     on('btn-7', () => { location.href = './lesson_select.html'; });
 
-    /* Load assets and wire click-to-play (separate namespaces for pronouns/objects) */
+    // Load assets + wire click-to-play
     loadPronouns(lesson);
     loadObjects(lesson);
 
-    /* Helpers */
+    // ---------- Helpers ----------
     function makeSlot(id, isSmall){
       const d = document.createElement('div');
       d.className = 'slot';
@@ -150,7 +142,7 @@
     function get(varName){ return getComputedStyle(document.documentElement).getPropertyValue(varName).trim(); }
     function pad2(n){ return String(n).padStart(2, '0'); }
 
-    function setImageAndClick(slotId, imgSrc, audioSrc){
+    function setImageAndClick(slotId, imgSrc, audioSrc, onClick){
       const el = $(slotId); if (!el) return;
       const img = new Image();
       img.src = imgSrc;
@@ -158,13 +150,23 @@
       img.onload = () => {
         el.innerHTML = '';
         el.appendChild(img);
-        img.addEventListener('click', () => playAudio(audioSrc));
+        if (typeof onClick === 'function') {
+          img.addEventListener('click', onClick);
+        } else {
+          img.addEventListener('click', () => {
+            playAudio(audioSrc);
+            if (slotId.startsWith('p-')) { // Ensure pronoun audio plays immediately
+              pendingPronoun = audioSrc;
+            }
+          });
+        }
       };
       img.onerror = () => { el.textContent = 'missing: ' + imgSrc.split('/').pop(); };
     }
 
-    /* One shared audio element; click-only */
+    // ---------- Audio core ----------
     const audioEl = $('audio-main');
+
     function playAudio(src){
       try {
         audioEl.pause();
@@ -172,28 +174,66 @@
       } catch(_) {}
       audioEl.src = src;
       audioEl.play().catch(() => {
-        // Non-blocking: if autoplay is disallowed or file missing, just log it.
         console.warn('Audio play failed for', src);
       });
     }
 
-    /* Pronouns: P1..P7 (images + audios) */
+    // Snap-on state (GLOBAL in this module scope)
+    let pendingPronoun = null;   // last selected pronoun audio (p#.m4a)
+    let isPlaying = false;       // prevent overlap during pair playback
+
+    function playPair(pSrc, oSrc){
+      try { audioEl.pause(); audioEl.currentTime = 0; } catch(_) {}
+
+      if (isPlaying) return;
+      isPlaying = true;
+
+      audioEl.onended = () => {
+        audioEl.onended = null;
+        audioEl.src = oSrc;
+        audioEl.play().then(() => {
+          audioEl.onended = () => { audioEl.onended = null; isPlaying = false; };
+        }).catch(() => { isPlaying = false; });
+      };
+
+      audioEl.src = pSrc;
+      audioEl.play().catch(() => {
+        audioEl.onended = null;
+        isPlaying = false;
+        playAudio(oSrc);
+      });
+    }
+
+    // ---------- Loaders ----------
+    // Pronouns: p1..p7 (images + audios). Click = select (no sound yet)
     function loadPronouns(n){
       pronounFrames.forEach((slotId, i) => {
         const idx = i + 1; // 1..7
         const img = `./group/lesson${n}/pronouns/images/p${idx}.png`;
         const aud = `./group/lesson${n}/pronouns/audios/p${idx}.m4a`;
-        setImageAndClick(slotId, img, aud);
+        setImageAndClick(slotId, img, aud, () => {
+          // Select pronoun silently and play its audio immediately
+          playAudio(aud);
+          pendingPronoun = aud;
+        });
       });
     }
 
-    /* Objects: 01..10 (images + audios) */
+    // Objects: 01..10 (images + audios). Click = play pronoun→object if selected, else object solo
     function loadObjects(n){
       objectFrames.forEach((slotId, i) => {
         const code = pad2(i + 1); // 01..10
         const img = `./group/lesson${n}/objects/images/${code}.png`;
         const aud = `./group/lesson${n}/objects/audios/${code}.m4a`;
-        setImageAndClick(slotId, img, aud);
+        setImageAndClick(slotId, img, aud, () => {
+          if (pendingPronoun && !isPlaying) {
+            const p = pendingPronoun;
+            pendingPronoun = null;        // consume selection
+            playPair(p, aud);
+          } else {
+            playAudio(aud);
+          }
+        });
       });
     }
   })();
