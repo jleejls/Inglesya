@@ -1,55 +1,49 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Plática • Select Lesson</title>
-  <style>
-    :root{ --pad:12px }
-    body{margin:0;font-family:system-ui}
-    header{padding:var(--pad);border-bottom:1px solid #eee;text-align:center}
-    .wrap{display:grid;place-items:center;padding:16px}
-    .twoCols{display:grid;grid-template-columns:repeat(2, minmax(220px, 1fr));gap:12px}
-    .col{display:grid;grid-template-rows:repeat(10, auto);gap:12px}
-    button{padding:12px;border-radius:10px;border:1px solid #ddd;background:#fafafa;cursor:pointer}
-    button:hover{background:#f0f0f0}
-    .label{opacity:.6;font-size:.9rem}
-  </style>
+<meta charset="utf-8">
+<title>Lesson Select</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  body{margin:0;font-family:system-ui,Segoe UI,Roboto,Arial;background:#f5f7fb;color:#222}
+  header{padding:16px 20px;background:#1e293b;color:#fff;font-weight:600}
+  main{max-width:960px;margin:0 auto;padding:16px}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .col{display:grid;gap:12px}
+  button.lesson-btn{width:100%;text-align:left;padding:14px 16px;border:1px solid #d7dbe3;border-radius:12px;background:#fff;cursor:pointer}
+  button.lesson-btn:hover{box-shadow:0 2px 12px rgba(0,0,0,.06)}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
-  <header><h2>Choose a lesson</h2></header>
-  <div class="wrap">
-    <div class="twoCols" id="pick"></div>
-  </div>
+<header>Pick a lesson</header>
+<main>
+  <div id="pick" class="grid" aria-live="polite"></div>
+</main>
 
-  <script>
-  (() => {
-    const V = 'tdi.v2.';
-    // Safety rails
-    if (sessionStorage.getItem(V+'structure') !== '1') { location.replace('./structure.html'); return; }
-    if (sessionStorage.getItem(V+'buttons')   !== '1') { location.replace('./buttons.html');   return; }
+<script>
+(() => {
+  const q = new URLSearchParams(location.search);
+  const TENSE = q.get('tense') || 'NOW';  // change to 'now' if your folders are lowercase
+  const mount = document.getElementById('pick');
 
-    const mount = document.getElementById('pick');
+  function makeLessonButton(n){
+    const b = document.createElement('button');
+    b.className = 'lesson-btn';
+    b.innerHTML = `<strong>Lesson ${n}</strong><div class="label">Load in Director</div>`;
+    b.onclick = () => location.href = `director.html?tense=${encodeURIComponent(TENSE)}&lesson=${n}`;
+    return b;
+  }
 
-    function makeColumn(start){
-      const col = document.createElement('div');
-      col.className = 'col';
-      for (let n = start; n < start+10; n++) {
-        const b = document.createElement('button');
-        const label = document.createElement('div');
-        label.className = 'label';
-        label.textContent = '(verb placeholder)';
-        b.innerHTML = `<strong>Lesson ${n}</strong><br>`;
-        b.appendChild(label);
-        b.onclick = () => { location.href = `./director.html?lesson=${n}`; };
-        col.appendChild(b);
-      }
-      return col;
-    }
+  function column(start){
+    const c = document.createElement('div'); c.className='col';
+    for(let n=start;n<start+10;n++) c.appendChild(makeLessonButton(n));
+    return c;
+  }
 
-    mount.appendChild(makeColumn(1));
-    mount.appendChild(makeColumn(11));
-  })();
-  </script>
+  mount.appendChild(column(1));
+  mount.appendChild(column(11));
+})();
+</script>
 </body>
 </html>

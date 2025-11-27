@@ -1,56 +1,98 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Plática • Structure Init</title>
-  <style>
-    :root{
-      /* Set your placeholder dimensions here if you want fixed sizes.
-         BIG = pronoun slots (***x***), SMALL = object slots (***x***).
-         Example: --BIG-W: 200px; --BIG-H: 200px; --SMALL-W: 120px; --SMALL-H: 120px;
-      */
-      --BIG-W: clamp(100px,12vw,200px);
-      --BIG-H: clamp(100px,12vw,200px);
-      --SMALL-W: clamp(60px,6.5vw,100px);
-      --SMALL-H: clamp(60px,6.5vw,100px);
-      --GAP: min(2vw,16px);
-    }
-    html,body{height:100%;margin:0;font-family:system-ui}
-    .center{display:grid;place-items:center;height:100vh}
-  </style>
+<meta charset="utf-8">
+<title>Structure</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body{
+    margin:0;
+    background:#000;
+  }
+</style>
 </head>
 <body>
-  <div class="center"><h2>Setting up structure…</h2></div>
-  <script>
-  (() => {
-    // Module: structure — defines ONLY slot layout + sizes, then hands off.
-    const V = 'tdi.v2.';
+<script>
+(function(){
+  // Base tile geometry (copied from the old director style)
+  const TILE_W = 120;
+  const TILE_H = 90;
+  const GAP_X  = 14;
+  const GAP_Y  = 14;
 
-    // Define 7 pronoun slots (no main slot): 3 on top row (centered), 4 on bottom row (centered)
-    const pronounFrames = Array.from({length:7}, (_,i) => ({ id: `p-${i+1}` }));
+  const START_X = 20;
+  const START_Y = 20;
 
-    // Define 10 object slots: 5 on far left column, 5 on far right column
-    const objectFrames  = Array.from({length:10}, (_,i) => ({ id: `o-${i+1}` }));
+  const pronSlots = [];
+  const objSlots  = [];
 
-    // Dimensions per spec (hooked to CSS vars so you can set ***x*** easily)
-    const BIG = { w: getComputedStyle(document.documentElement).getPropertyValue('--BIG-W').trim(),
-                  h: getComputedStyle(document.documentElement).getPropertyValue('--BIG-H').trim() };
-    const SMALL = { w: getComputedStyle(document.documentElement).getPropertyValue('--SMALL-W').trim(),
-                    h: getComputedStyle(document.documentElement).getPropertyValue('--SMALL-H').trim() };
+  // ---- PRONOUN SLOTS (1–7) ----
+  // Row 1: ids 1,2,3,4
+  const x1 = START_X;
+  const x2 = x1 + TILE_W + GAP_X;
+  const x3 = x2 + TILE_W + GAP_X;
+  const x4 = x3 + TILE_W + GAP_X;
 
-    const layoutSpec = {
-      version: '2',
-      pronounFrames, // 7
-      objectFrames,  // 10
-      sizes: { BIG, SMALL },
-      gap: getComputedStyle(document.documentElement).getPropertyValue('--GAP').trim()
-    };
+  const y1 = START_Y;
+  const y2 = y1 + TILE_H + GAP_Y;
+  const y3 = y2 + TILE_H + GAP_Y; // expression row
 
-    sessionStorage.setItem(V+'layoutSpec', JSON.stringify(layoutSpec));
-    sessionStorage.setItem(V+'structure', '1');
-    location.replace('./buttons.html');
-  })();
-  </script>
+  // Row 1
+  pronSlots.push({ id:1, kind:"pronoun", x:x1, y:y1, width:TILE_W, height:TILE_H });
+  pronSlots.push({ id:2, kind:"pronoun", x:x2, y:y1, width:TILE_W, height:TILE_H });
+  pronSlots.push({ id:3, kind:"pronoun", x:x3, y:y1, width:TILE_W, height:TILE_H });
+  pronSlots.push({ id:4, kind:"pronoun", x:x4, y:y1, width:TILE_W, height:TILE_H });
+
+  // Row 2: ids 5,6,7 at x1,x2,x3
+  pronSlots.push({ id:5, kind:"pronoun", x:x1, y:y2, width:TILE_W, height:TILE_H });
+  pronSlots.push({ id:6, kind:"pronoun", x:x2, y:y2, width:TILE_W, height:TILE_H });
+  pronSlots.push({ id:7, kind:"pronoun", x:x3, y:y2, width:TILE_W, height:TILE_H });
+
+  // ---- EXPRESSION SLOTS (8–9) ----
+  // Centered visually by placing them under positions 2 and 3
+  pronSlots.push({ id:8, kind:"expression", x:x2, y:y3, width:TILE_W, height:TILE_H });
+  pronSlots.push({ id:9, kind:"expression", x:x3, y:y3, width:TILE_W, height:TILE_H });
+
+  // ---- OBJECT SLOTS (1–10) ----
+  // Two columns of 5:
+  // Left column:  1–5 (top to bottom)
+  // Right column: 6–10 (top to bottom)
+  const OBJ_OFFSET = 60;  // gap between pronoun block and object block horizontally
+  const pronounBlockWidth = (4 * TILE_W) + (3 * GAP_X);
+  const objStartX = START_X + pronounBlockWidth + OBJ_OFFSET;
+  const objStartY = START_Y;
+  const stepY     = TILE_H + GAP_Y;
+
+  // Left column: ids 1–5
+  for (let i = 0; i < 5; i++) {
+    objSlots.push({
+      id: i + 1,
+      x: objStartX,
+      y: objStartY + i * stepY,
+      width:  TILE_W,
+      height: TILE_H
+    });
+  }
+
+  // Right column: ids 6–10
+  const objRightX = objStartX + TILE_W + GAP_X;
+  for (let i = 0; i < 5; i++) {
+    objSlots.push({
+      id: 6 + i,
+      x: objRightX,
+      y: objStartY + i * stepY,
+      width:  TILE_W,
+      height: TILE_H
+    });
+  }
+
+  // ---- Store in sessionStorage ----
+  sessionStorage.setItem("platica.pronSlots", JSON.stringify(pronSlots));
+  sessionStorage.setItem("platica.objSlots",  JSON.stringify(objSlots));
+
+  // Move on to define the buttons
+  location.href = "buttons.html";
+})();
+</script>
 </body>
 </html>

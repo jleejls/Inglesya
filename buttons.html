@@ -1,46 +1,25 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Plática • Buttons Init</title>
-  <style>
-    :root{
-      /* Button dimensions and radius (***x*** and **px) */
-      --BTN-W: 140px;  /* replace with *** */
-      --BTN-H: 44px;   /* replace with *** */
-      --BTN-R: 10px;   /* replace with **  */
-    }
-    html,body{height:100%;margin:0;font-family:system-ui}
-    .center{display:grid;place-items:center;height:100vh}
-  </style>
+<meta charset="utf-8">
+<title>Buttons</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  body{margin:0;font-family:system-ui;background:#f5f7fb}
+  main{max-width:840px;margin:40px auto;padding:24px;background:#fff;border:1px solid #e3e7ef;border-radius:14px}
+  .small{color:#566}
+</style>
 </head>
 <body>
-  <div class="center"><h2>Wiring controls…</h2></div>
-  <script>
-  (() => {
-    // Module: buttons — defines ONLY the 7 bottom buttons, then hands off.
-    const V = 'tdi.v2.';
-
-    // Seven generic buttons placed/centered in a single bottom row by Director.
-    const buttonsSpec = [
-      { id: 'btn-1', label: 'Button 1' },
-      { id: 'btn-2', label: 'Button 2' },
-      { id: 'btn-3', label: 'Button 3' },
-      { id: 'btn-4', label: 'Button 4' },
-      { id: 'btn-5', label: 'Button 5' },
-      { id: 'btn-6', label: 'Button 6' },
-      { id: 'btn-7', label: 'Button 7' }
-    ];
-
-    const buttonStyle = { w: 'var(--BTN-W)', h: 'var(--BTN-H)', r: 'var(--BTN-R)' };
-
-    sessionStorage.setItem(V+'buttonsSpec', JSON.stringify(buttonsSpec));
-    sessionStorage.setItem(V+'buttonStyle', JSON.stringify(buttonStyle));
-    sessionStorage.setItem(V+'buttons', '1');
-
-    location.replace('./lesson_select.html');
-  })();
-  </script>
+<main>
+  <h2>Preparing buttons…</h2>
+  <p class="small">Pass-through page.</p>
+</main>
+<script>
+  const q = new URLSearchParams(location.search);
+  const tense = q.get('tense') || 'NOW';
+  // Next: lesson selector
+  location.replace('lesson_select.html?tense=' + encodeURIComponent(tense));
+</script>
 </body>
 </html>
