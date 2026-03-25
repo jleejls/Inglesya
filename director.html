@@ -151,6 +151,11 @@
     }
   }
 </style>
+<script>
+const lesson = sessionStorage.getItem("lesson") || "1";
+const tense  = sessionStorage.getItem("tense")  || "now";
+</script>
+
 </head>
 <body>
 <header id="banner">Director</header>
@@ -204,13 +209,14 @@
     for (let i = 1; i <= 8; i++) {
       buttons.push({ id: i, label: "B" + i });
     }
+	
   }
 
-  const tense  = sessionStorage.getItem("tense")  || "NOW";
+  const tense  = sessionStorage.getItem("tense")  || "now";
   let   lesson = Number(sessionStorage.getItem("lesson") || "1");
-  if (!lesson || Number.isNaN(lesson)) lesson = 1;
+  if (!lesson || Number.isNaN(lesson)) lesson = 2;
 
-  const basePath = `group/${tense}/lesson${lesson}`;
+  const basePath = `group/now/lesson${lesson}`;
   document.getElementById("banner").textContent = `Director — ${basePath}`;
 
   // ----- Paths -----
@@ -360,5 +366,14 @@ if (group === "objects") {
 
 })();
 </script>
+
+<script>
+const lesson = sessionStorage.getItem("lesson") || "1";
+const tense  = sessionStorage.getItem("tense")  || "now";
+
+console.log("Lesson:", lesson);
+console.log("Tense:", tense);
+</script>
+
 </body>
 </html>
