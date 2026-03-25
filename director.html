@@ -214,7 +214,7 @@ const tense  = sessionStorage.getItem("tense")  || "now";
 
   const tense  = sessionStorage.getItem("tense")  || "now";
   let   lesson = Number(sessionStorage.getItem("lesson") || "1");
-  if (!lesson || Number.isNaN(lesson)) lesson = 2;
+  if (!lesson || Number.isNaN(lesson)) lesson = 1;
 
   const basePath = `group/now/lesson${lesson}`;
   document.getElementById("banner").textContent = `Director — ${basePath}`;
@@ -368,8 +368,6 @@ if (group === "objects") {
 </script>
 
 <script>
-const lesson = sessionStorage.getItem("lesson") || "1";
-const tense  = sessionStorage.getItem("tense")  || "now";
 
 console.log("Lesson:", lesson);
 console.log("Tense:", tense);
