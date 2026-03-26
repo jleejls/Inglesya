@@ -17,9 +17,9 @@
 </main>
 <script>
   const q = new URLSearchParams(location.search);
-  const tense = q.get('tense') || 'NOW';
+ 
   // Next: lesson selector
-  location.replace('lesson_select.html?tense=' + encodeURIComponent(tense));
+location.href = "lesson_select.html";
 </script>
 </body>
 </html>

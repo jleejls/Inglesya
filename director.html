@@ -216,7 +216,7 @@ const tense  = sessionStorage.getItem("tense")  || "now";
   let   lesson = Number(sessionStorage.getItem("lesson") || "1");
   if (!lesson || Number.isNaN(lesson)) lesson = 1;
 
-  const basePath = `group/now/lesson${lesson}`;
+  const basePath = `group/lesson${lesson}`;
   document.getElementById("banner").textContent = `Director — ${basePath}`;
 
   // ----- Paths -----
@@ -356,12 +356,7 @@ if (group === "objects") {
   }
   return;
 }
-
-
-
-
-
-   
+  
   });
 
 })();
