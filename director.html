@@ -90,8 +90,8 @@
 
 #objLeft .tile img,
 #objRight .tile img {
-    max-width:60%;
-    max-height:60%;
+    max-width:50%;
+    max-height:50%;
 }
 
 
@@ -125,8 +125,10 @@
     pointer-events:none;
   }
   .trigger-btn{
-    min-width:40px;
-    padding:6px 10px;
+    min-width:90px;
+    height: 40px;
+    padding: 0 12px;
+    display: flex;
     border-radius:10px;
     border:1px solid #d7dbe3;
     background:#fff7d1;
@@ -182,7 +184,18 @@ const tense  = sessionStorage.getItem("tense")  || "now";
   </div>
 </main>
 
-<div id="triggerBar" class="trigger-bar hidden"></div>
+<div id="triggerBar" class="trigger-bar">
+
+  <button class="trigger"><img src="./images/p1.png"></button>
+  <button class="trigger"><img src="./images/p2.png"></button>
+  <button class="trigger"><img src="./images/p3.png"></button>
+  <button class="trigger"><img src="./images/p4.png"></button>
+  <button class="trigger"><img src="./images/p5.png"></button>
+  <button class="trigger"><img src="./images/p6.png"></button>
+  <button class="trigger"><img src="./images/p7.png"></button>
+  <button class="trigger"><img src="./images/p8.png"></button>
+
+</div>
 
 <audio id="player" preload="auto"></audio>
 

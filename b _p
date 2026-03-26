@@ -1,0 +1,12 @@
+trigger<div class="button-bar">
+
+  <button class="trigger"><img src="./images/p1.png"></button>
+  <button class="trigger"><img src="./images/p2.png"></button>
+  <button class="trigger"><img src="./images/p3.png"></button>
+  <button class="trigger"><img src="./images/p4.png"></button>
+  <button class="trigger"><img src="./images/b5.png"></button>
+  <button class="trigger"><img src="./images/b6.png"></button>
+  <button class="trigger"><img src="./images/b7.png"></button>
+  <button class="trigger"><img src="./images/b8.png"></button>
+
+</div>
