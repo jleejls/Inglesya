@@ -92,43 +92,6 @@
     white-space:pre-line;
   }
 
-  .trigger-bar{
-    position:fixed;
-    left:0;
-    right:0;
-    bottom:0;
-    padding:6px 8px;
-    background:rgba(255,255,255,.96);
-    box-shadow:0 -2px 10px rgba(0,0,0,.08);
-    display:flex;
-    justify-content:center;
-    gap:6px;
-    z-index:10;
-    opacity:1;
-    transition:opacity .15s;
-  }
-  .trigger-bar.hidden{
-    opacity:0;
-    pointer-events:none;
-  }
-  .trigger-btn{
-    min-width:40px;
-    min-height:40px;
-    padding:4px 6px;
-    border-radius:10px;
-    border:1px solid #d7dbe3;
-    background:#fff7d1;
-    cursor:pointer;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-  }
-  .trigger-btn img{
-    max-width:32px;
-    max-height:32px;
-    display:block;
-  }
-
   .foot{
     position:fixed;
     left:8px;
@@ -166,7 +129,6 @@
   </div>
 </main>
 
-<div id="triggerBar" class="trigger-bar hidden"></div>
 <audio id="player" preload="auto"></audio>
 
 <script>
@@ -241,7 +203,7 @@
 console.log("pronMount =", pronMount);
 console.log("leftCol =", leftCol);
 console.log("rightCol =", rightCol);
-console.log("triggerBar =", triggerBar);
+
 
     if (slot.column === 1) {
       leftCol.appendChild(t);
@@ -249,22 +211,6 @@ console.log("triggerBar =", triggerBar);
       rightCol.appendChild(t);
     }
   });
-
-  // ----- Bottom trigger buttons using Trigger/P1-P7 -----
-  const triggerBar = document.getElementById("triggerBar");
-
-  for (let i = 1; i <= 7; i++) {
-    const b = document.createElement("button");
-    b.className = "trigger-btn";
-    b.type = "button";
-    b.title = `Trigger ${i}`;
-
-    const img = document.createElement("img");
-    img.src = `./Trigger/P${i}.png`;
-    img.alt = `Trigger ${i}`;
-    img.onerror = () => {
-      b.textContent = `P${i}`;
-    };
 
     b.appendChild(img);
 
@@ -283,18 +229,6 @@ console.log("triggerBar =", triggerBar);
         // window.location.href = "PAGE2.html";
       };
     }
-
-    if (i === 3) {
-      b.onclick = () => {
-        console.log("Button 3 clicked. Set your real destination page here.");
-        // window.location.href = "PAGE3.html";
-      };
-    }
-
-    //triggerBar.appendChild(b);
-  }
-
-  triggerBar.classList.remove("hidden");
 
   // ----- Debug badge -----
   console.log("pronMount =", pronMount);
