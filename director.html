@@ -19,7 +19,7 @@
     font-size:15px;
   }
   main{
-    max-width:1140px;
+    max-width:1440px;
     margin:0 auto;
     padding:12px 12px 72px;
   }
@@ -52,6 +52,7 @@
     gap:3px;
   }
 
+ 
   .tile{
     position:relative;
     border:1px solid #d7dbe3;
@@ -60,15 +61,17 @@
     cursor:pointer;
     background:#f9fafb;
     aspect-ratio:3/4;
-    max-height:250px;
+     /*size of frame*/
+    max-height:150px;
     display:flex;
     align-items:center;
     justify-content:center;
   }
 
+  /*size of object frame*/
   #objLeft .tile,
   #objRight .tile{
-    max-height:105px;
+    max-height:90px;
     aspect-ratio:1/1;
   }
 
@@ -105,6 +108,41 @@
   @media (max-width:600px){
     main{ padding-bottom:88px; }
   }
+/* ----- Trigger bar ----- */
+.trigger-bar{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  padding:6px 8px;
+  background:rgba(255,255,255,.96);
+  box-shadow:0 -2px 10px rgba(0,0,0,.08);
+  display:flex;
+  justify-content:center;
+  gap:6px;
+  z-index:1000;
+}
+
+.trigger-btn{
+  width:54px;
+  height:54px;
+  border:1px solid #cfd6df;
+  border-radius:10px;
+  background:#f8f9fb;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  cursor:pointer;
+  padding:0;
+}
+
+.trigger-btn img{
+  max-width:100%;
+  max-height:100%;
+  display:block;
+}
+
 </style>
 </head>
 <body>
@@ -130,7 +168,7 @@
 </main>
 
 <audio id="player" preload="auto"></audio>
-
+<div id="triggerBar" class="trigger-bar"></div>
 <script>
 (function(){
   // ----- Session data -----
@@ -163,6 +201,7 @@
   const objImg  = i => `${basePath}/objects/images/p${i}.png`;
   const pronAud = i => `${basePath}/pronouns/audios/a${i}.m4a`;
   const objAud  = i => `${basePath}/objects/audios/a${i}.m4a`;
+  const trigImg = i => `./trigger/P${i}.png`;
 
   // ----- Builders -----
   function makeTile(src, fallbackLabel){
@@ -212,7 +251,46 @@ console.log("rightCol =", rightCol);
     }
   });
 
+// ----- Trigger buttons -----
+const triggerBar = document.getElementById("triggerBar");
 
+for (let i = 1; i <= 3; i++) {
+  const b = document.createElement("button");
+  b.className = "trigger-btn";
+  b.type = "button";
+
+  const img = document.createElement("img");
+img.src = trigImg(i);
+img.alt = `Trigger ${i}`;
+
+img.onerror = () => {
+  b.textContent = `T${i}`;
+};
+
+b.appendChild(img);
+
+if (i === 1) {
+  b.onclick = () => {
+    lesson = lesson + 1;
+    sessionStorage.setItem("lesson", String(lesson));
+    location.reload();
+  };
+}
+
+if (i === 2) {
+  b.onclick = () => {
+    window.location.href = "about:blank";
+  };
+}
+
+if (i === 3) {
+  b.onclick = () => {
+    window.location.href = "lesson_select.html";
+  };
+}
+
+triggerBar.appendChild(b);
+}
 
   // ----- Debug badge -----
   console.log("pronMount =", pronMount);
