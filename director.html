@@ -143,6 +143,58 @@
   display:block;
 }
 
+.trigger-bar{
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 8px;
+}
+
+.trigger-btn{
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.trigger-btn img{
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+    .trigger-bar{
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding: 6px 8px;
+    }
+
+    .trigger-btn{
+      width: 48px;
+      height: 48px;
+      padding: 0;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .trigger-btn img{
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
 </style>
 </head>
 <body>
@@ -254,7 +306,7 @@ console.log("rightCol =", rightCol);
 // ----- Trigger buttons -----
 const triggerBar = document.getElementById("triggerBar");
 
-for (let i = 1; i <= 3; i++) {
+for (let i = 1; i <= 8; i++) {
   const b = document.createElement("button");
   b.className = "trigger-btn";
   b.type = "button";
@@ -273,10 +325,9 @@ if (i === 1) {
   b.onclick = () => {
     lesson = lesson + 1;
     sessionStorage.setItem("lesson", String(lesson));
-    location.reload();
+    window.location.href = "director.html";
   };
 }
-
 if (i === 2) {
   b.onclick = () => {
     window.location.href = "about:blank";
@@ -286,6 +337,19 @@ if (i === 2) {
 if (i === 3) {
   b.onclick = () => {
     window.location.href = "lesson_select.html";
+  };
+}
+
+if (i === 7) {
+  b.onclick = () => {
+    console.log("Button 7 clicked");
+  };
+}
+if (i === 8) {
+  b.onclick = function () {
+    const lesson = sessionStorage.getItem("lesson") || "1";
+    const a = new Audio(`./group/lesson${lesson}/translation/1.m4a`);
+    a.play();
   };
 }
 
