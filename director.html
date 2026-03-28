@@ -342,13 +342,15 @@ if (i === 3) {
 
 if (i === 7) {
   b.onclick = () => {
-    console.log("Button 7 clicked");
+  //  sessionStorage.setItem("lesson5");
+    window.location.href = "lagente.html";
   };
 }
 if (i === 8) {
   b.onclick = function () {
     const lesson = sessionStorage.getItem("lesson") || "1";
-    const a = new Audio(`./group/lesson${lesson}/translation/1.m4a`);
+    const a = new Audio(`./group/
+    }/translation/1.m4a`);
     a.play();
   };
 }
