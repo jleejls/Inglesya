@@ -14,62 +14,84 @@
 <body>
 <script>
 (function(){
+  // Base tile geometry (copied from the old director style)
+  const TILE_W = 120;
+  const TILE_H = 90;
+  const GAP_X  = 14;
+  const GAP_Y  = 14;
 
-  // -------------------------------------------------
-  // INDIVIDUAL TILE SIZE
-  // -------------------------------------------------
-  const TILE_W = 122;
-  const TILE_H = 90.4;
-  const TILE_W1 = 160.1;
-  const TILE_H1 = 250;
-  // -------------------------------------------------
-  // INDIVIDUAL SLOT POSITIONS
-  // Move ANY ONE of these by changing only its x or y.
-  // Nothing else should move with it.
-  // -------------------------------------------------
+  const START_X = 20;
+  const START_Y = 20;
 
-  const pronounLayout = [
-    { id: 1, kind: "pronoun", x: 260, y:  2.5, width: TILE_W1, height: TILE_H1 },
-    { id: 2, kind: "pronoun", x: 490, y:  2.5, width: TILE_W1, height: TILE_H1 },
-    { id: 3, kind: "pronoun", x: 724, y:  2.5, width: TILE_W1, height: TILE_H1 },
-    { id: 4, kind: "pronoun", x: 952.2, y:  2.5, width: TILE_W1, height: TILE_H1 },
+  const pronSlots = [];
+  const objSlots  = [];
 
-    { id: 5, kind: "pronoun", x: 410.4, y: 270, width: TILE_W1, height: TILE_H1 },
-    { id: 6, kind: "pronoun", x: 600, y: 270, width: TILE_W1, height: TILE_H1 },
-    { id: 7, kind: "pronoun", x: 785.1, y: 270, width: TILE_W1, height: TILE_H1 }
+  // ---- PRONOUN SLOTS (1–7) ----
+  // Row 1: ids 1,2,3,4
+  const x1 = START_X;
+  const x2 = x1 + TILE_W + GAP_X;
+  const x3 = x2 + TILE_W + GAP_X;
+  const x4 = x3 + TILE_W + GAP_X;
 
-    // If later you activate expression tiles, use the same idea:
-    // ,{ id: 8, kind: "expression", x: 284, y: 228, width: TILE_W, height: TILE_H }
-    // ,{ id: 9, kind: "expression", x: 418, y: 228, width: TILE_W, height: TILE_H }
-  ];
+  const y1 = START_Y;
+  const y2 = y1 + TILE_H + GAP_Y;
+  const y3 = y2 + TILE_H + GAP_Y; // expression row
 
-  const objectLayout = [
-    // Left side column
-    { id: 1,  column: 1, x: 17.3, y:  20, width: TILE_W, height: TILE_H },
-    { id: 2,  column: 1, x: 17.3, y: 124, width: TILE_W, height: TILE_H },
-    { id: 3,  column: 1, x: 17.3, y: 228, width: TILE_W, height: TILE_H },
-    { id: 4,  column: 1, x: 17.3, y: 332, width: TILE_W, height: TILE_H },
-    { id: 5,  column: 1, x: 7.3, y: 436, width: TILE_W, height: TILE_H },
+  // Row 1
+  pronSlots.push({ id:1, kind:"pronoun", x:x1, y:y1, width:TILE_W, height:TILE_H });
+  pronSlots.push({ id:2, kind:"pronoun", x:x2, y:y1, width:TILE_W, height:TILE_H });
+  pronSlots.push({ id:3, kind:"pronoun", x:x3, y:y1, width:TILE_W, height:TILE_H });
+  pronSlots.push({ id:4, kind:"pronoun", x:x4, y:y1, width:TILE_W, height:TILE_H });
 
-    // Right side column
-    { id: 6,  column: 2, x: 1220, y:  20, width: TILE_W, height: TILE_H },
-    { id: 7,  column: 2, x: 1220, y: 124, width: TILE_W, height: TILE_H },
-    { id: 8,  column: 2, x: 1220, y: 228, width: TILE_W, height: TILE_H },
-    { id: 9,  column: 2, x: 1220, y: 332, width: TILE_W, height: TILE_H },
-    { id: 10, column: 2, x: 1220, y: 436, width: TILE_W, height: TILE_H }
-  ];
+  // Row 2: ids 5,6,7 at x1,x2,x3
+  pronSlots.push({ id:5, kind:"pronoun", x:x1, y:y2, width:TILE_W, height:TILE_H });
+  pronSlots.push({ id:6, kind:"pronoun", x:x2, y:y2, width:TILE_W, height:TILE_H });
+  pronSlots.push({ id:7, kind:"pronoun", x:x3, y:y2, width:TILE_W, height:TILE_H });
 
-  // -------------------------------------------------
-  // STORE FOR DIRECTOR
-  // -------------------------------------------------
-  sessionStorage.setItem("pronounSlots", JSON.stringify(pronounLayout));
-  sessionStorage.setItem("objectSlots", JSON.stringify(objectLayout));
+  // ---- EXPRESSION SLOTS (8–9) ----
+  // Centered visually by placing them under positions 2 and 3
+  pronSlots.push({ id:8, kind:"expression", x:x2, y:y3, width:TILE_W, height:TILE_H });
+  pronSlots.push({ id:9, kind:"expression", x:x3, y:y3, width:TILE_W, height:TILE_H });
 
-  // -------------------------------------------------
-  // CONTINUE PROGRAM FLOW
-  // -------------------------------------------------
-  location.href = "lesson_select.html";
+  // ---- OBJECT SLOTS (1–10) ----
+  // Two columns of 5:
+  // Left column:  1–5 (top to bottom)
+  // Right column: 6–10 (top to bottom)
+  const OBJ_OFFSET = 60;  // gap between pronoun block and object block horizontally
+  const pronounBlockWidth = (4 * TILE_W) + (3 * GAP_X);
+  const objStartX = START_X + pronounBlockWidth + OBJ_OFFSET;
+  const objStartY = START_Y;
+  const stepY     = TILE_H + GAP_Y;
 
+  // Left column: ids 1–5
+  for (let i = 0; i < 5; i++) {
+    objSlots.push({
+      id: i + 1,
+      x: objStartX,
+      y: objStartY + i * stepY,
+      width:  TILE_W,
+      height: TILE_H
+    });
+  }
+
+  // Right column: ids 6–10
+  const objRightX = objStartX + TILE_W + GAP_X;
+  for (let i = 0; i < 5; i++) {
+    objSlots.push({
+      id: 6 + i,
+      x: objRightX,
+      y: objStartY + i * stepY,
+      width:  TILE_W,
+      height: TILE_H
+    });
+  }
+
+  // ---- Store in sessionStorage ----
+  sessionStorage.setItem("platica.pronSlots", JSON.stringify(pronSlots));
+  sessionStorage.setItem("platica.objSlots",  JSON.stringify(objSlots));
+
+  // Move on to define the buttons
+  location.href = "buttons.html";
 })();
 </script>
 </body>
