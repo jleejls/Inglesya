@@ -20,6 +20,7 @@
     background:#ffffff;
     overflow:auto;
     font-family:Arial, Helvetica, sans-serif;
+  }
   body{
     margin:0;
     font-family:system-ui,Segoe UI,Roboto,Arial;
@@ -509,11 +510,18 @@ function closeContactOverlay(){
   }
 
   const actions = {
-    continue(){
-      const nextLesson = currentLesson() + 1;
-      sessionStorage.setItem("lesson", String(nextLesson));
-      window.location.reload();
-    },
+continue(){
+  const lessonNow = currentLesson();
+
+  if (lessonNow >= 20) {
+    alert("You are already on the last lesson.");
+    return;
+  }
+
+  const nextLesson = lessonNow + 1;
+  sessionStorage.setItem("lesson", String(nextLesson));
+  window.location.reload();
+},
 
     exit(){
       goTo("index.html");
