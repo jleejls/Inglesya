@@ -21,9 +21,9 @@
   <div id="pick" class="grid" aria-live="polite"></div>
 </main>
 
-<button onclick="startLesson(1)">Lesson 1</button>
-<button onclick="startLesson(2)">Lesson 2</button>
-<button onclick="startLesson(3)">Lesson 3</button>
+<button onclick="startLesson(1)">Lesson 1 - have</button>
+<button onclick="startLesson(2)">Lesson 2 - want</button>
+<button onclick="startLesson(3)">Lesson 3 - say</button>
 <button onclick="startLesson(4)">Lesson 4</button>
 <button onclick="startLesson(5)">Lesson 5</button>
 <button onclick="startLesson(6)">Lesson 6</button>
@@ -46,7 +46,7 @@
 function startLesson(num) {
   sessionStorage.setItem("lesson", num);
   sessionStorage.setItem("tense", "now"); // you can change later
-  window.location.href = "conductor.html";
+  window.location.href = "director.html";
 }
 </script>
 
