@@ -247,21 +247,91 @@
       padding-bottom:80px;
     }
   }
+
+  /* Lesson preparation overlay */
+  .prep-overlay{
+    position:fixed;
+    inset:0;
+    z-index:9999;
+    background:linear-gradient(180deg, #fff7df 0%, #f3fbff 100%);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:22px;
+    transition:opacity .35s ease, visibility .35s ease;
+  }
+
+  .prep-overlay.ready{
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+  }
+
+  .prep-card{
+    width:min(88vw, 430px);
+    background:rgba(255,255,255,.94);
+    border:1px solid #d7c88a;
+    border-radius:18px;
+    box-shadow:0 8px 26px rgba(0,0,0,.18);
+    text-align:center;
+    padding:24px 18px;
+    font-family:Arial, Helvetica, sans-serif;
+    color:#3b3020;
+  }
+
+  .prep-title{
+    font-size:22px;
+    font-weight:700;
+    margin:0 0 10px;
+  }
+
+  .prep-message{
+    font-size:17px;
+    line-height:1.35;
+    margin:0 0 14px;
+  }
+
+  .prep-credit{
+    font-size:13px;
+    line-height:1.35;
+    color:#665536;
+    margin:0;
+  }
+
+  .prep-dots{
+    display:inline-block;
+    min-width:22px;
+    text-align:left;
+  }
+
+  @media (max-width:380px){
+    .prep-card{
+      padding:20px 14px;
+      border-radius:16px;
+    }
+
+    .prep-title{
+      font-size:20px;
+    }
+
+    .prep-message{
+      font-size:16px;
+    }
+
+    .prep-credit{
+      font-size:12px;
+    }
+  }
+
 </style>
 <script>
 // ----- Conductor startup -----
 // Accept the lesson number no matter which earlier page stored it.
-(function(){
-  const storedLesson =
-    sessionStorage.getItem("lesson") ||
-    sessionStorage.getItem("selectedLesson") ||
-    sessionStorage.getItem("currentLesson") ||
-    "1";
-<script>
 (function () {
   const storedLesson =
     sessionStorage.getItem("selectedLesson") ||
     sessionStorage.getItem("lesson") ||
+    sessionStorage.getItem("currentLesson") ||
     "1";
 
   const cleanLesson = Number(storedLesson);
@@ -287,6 +357,15 @@ for (let i = 0; i < sessionStorage.length; i++) {
 </script>
 </head>
 <body>
+
+<div id="prepOverlay" class="prep-overlay" role="status" aria-live="polite" aria-label="Lesson preparation message">
+  <div class="prep-card">
+    <p class="prep-title">InglesYa</p>
+    <p class="prep-message">Your lesson is being prepared<span class="prep-dots">...</span></p>
+    <p class="prep-credit">Created by Jimmy Lucky</p>
+  </div>
+</div>
+
 <header id="banner">Director</header>
 
 <main>
@@ -312,29 +391,29 @@ for (let i = 0; i < sessionStorage.length; i++) {
 </main>
 
 <div id="pbar" class="zipbutton" aria-label="Program buttons">
-  <div class="buttonz" data-btn="continue" title="Continuar / next lesson">
-    <img src="./trigger/adelante.png" alt="Adelante">
-  </div>
+  <div class="buttonz" data-btn="continue" title="Advance to next page">
+  <img src="../trigger/adelante.png" alt="Advance">
+</div>
   <div class="buttonz" data-btn="exit" title="Exit to start page">
-    <img src="./trigger/exit.png" alt="Exit">
+    <img src="../trigger/exit.png" alt="Exit">
   </div>
   <div class="buttonz" data-btn="choosel" title="Choose lesson">
-    <img src="./trigger/choosel.png" alt="Choose lesson">
+    <img src="../trigger/choosel.png" alt="Choose lesson">
   </div>
   <div class="buttonz" data-btn="help" title="Help / guidelines">
-    <img src="./trigger/help.png" alt="Help">
+    <img src="../trigger/help.png" alt="Help">
   </div>
   <div class="buttonz" data-btn="email" title="Contact Jimmy Lucky">
-    <img src="./trigger/email.png" alt="Email">
+    <img src="../trigger/email.png" alt="Email">
   </div>
   <div class="buttonz" data-btn="donate" title="Donate">
-    <img src="./trigger/donate.png" alt="Donate">
+    <img src="../trigger/donate.png" alt="Donate">
   </div>
   <div class="buttonz" data-btn="goback" title="Go back">
-    <img src="./trigger/goback.png" alt="Back">
+    <img src="../trigger/goback.png" alt="Back">
   </div>
   <div class="buttonz" data-btn="translate" title="Translation">
-    <img src="./trigger/translate.png" alt="Translate">
+    <img src="../trigger/translate.png" alt="Translate">
   </div>
 </div>
 
@@ -386,7 +465,7 @@ for (let i = 0; i < sessionStorage.length; i++) {
   sessionStorage.setItem("lesson", String(lesson));
   sessionStorage.setItem("selectedLesson", String(lesson));
 
-  const basePath = `group/lesson${lesson}`;
+  const basePath = `../group/lesson${lesson}`;
   document.getElementById("banner").textContent = `Director — ${basePath}`;
 
   // ----- Paths -----
@@ -475,7 +554,9 @@ for (let i = 0; i < sessionStorage.length; i++) {
   let playToken = 0;
 
   function isExpressionPronoun(index){
-    return exprIds.includes(index);
+    // A8 and A9 are expression audios.
+    // They must always play alone and must never be saved for joining with objects.
+    return index === 8 || index === 9 || exprIds.includes(index);
   }
 
   function playSequence(sources){
@@ -594,18 +675,20 @@ function closeContactOverlay(){
   }
 
   const actions = {
-continue(){
-  const lessonNow = currentLesson();
+    continue(){
+      const lessonNow = currentLesson();
+      const nextLesson = lessonNow + 1;
 
-  if (lessonNow >= 20) {
-    alert("You are already on the last lesson.");
-    return;
-  }
+      if (nextLesson > 20) {
+        alert("You are already on the last lesson.");
+        return;
+      }
 
-  const nextLesson = lessonNow + 1;
-  sessionStorage.setItem("lesson", String(nextLesson));
-  window.location.reload();
-},
+      sessionStorage.setItem("lesson", String(nextLesson));
+      sessionStorage.setItem("selectedLesson", String(nextLesson));
+
+      window.location.href = "conductor.html";
+    },
 
     exit(){
       goTo("index.html");
@@ -640,8 +723,8 @@ continue(){
       const player = document.getElementById("player");
       if (!player) return;
 
-      // Change this path later if your translation audios live somewhere else.
-      player.src = `group/lesson${lesson}/translation/a1.m4a`;
+      // Shared group folder is one level above this conductor.
+      player.src = `../group/lesson${lesson}/translation/a1.m4a`;
       player.currentTime = 0;
       player.play().catch(err => console.log("translation play failed:", err));
     }
@@ -664,6 +747,41 @@ continue(){
 
 console.log("Lesson:", lesson);
 console.log("Tense:", tense);
+</script>
+
+
+<script>
+// ----- Lesson preparation overlay -----
+// Keeps the preparation screen visible for at least two seconds,
+// and also waits for the page load event so rough loading moments are hidden.
+(function(){
+  const startedAt = Date.now();
+  const minimumDelay = 2000;
+
+  function hidePreparationOverlay(){
+    const overlay = document.getElementById("prepOverlay");
+    if (!overlay) return;
+
+    const elapsed = Date.now() - startedAt;
+    const remaining = Math.max(0, minimumDelay - elapsed);
+
+    window.setTimeout(function(){
+      overlay.classList.add("ready");
+
+      window.setTimeout(function(){
+        if (overlay && overlay.parentNode) {
+          overlay.parentNode.removeChild(overlay);
+        }
+      }, 450);
+    }, remaining);
+  }
+
+  if (document.readyState === "complete") {
+    hidePreparationOverlay();
+  } else {
+    window.addEventListener("load", hidePreparationOverlay, { once:true });
+  }
+})();
 </script>
 
 </body>

@@ -251,10 +251,10 @@
 <script>
 // ----- Conductor startup -----
 // Accept the lesson number no matter which earlier page stored it.
-(function(){
+(function () {
   const storedLesson =
-    sessionStorage.getItem("lesson") ||
     sessionStorage.getItem("selectedLesson") ||
+    sessionStorage.getItem("lesson") ||
     sessionStorage.getItem("currentLesson") ||
     "1";
 
@@ -271,8 +271,14 @@
 
 const lesson = sessionStorage.getItem("lesson") || "1";
 const tense  = sessionStorage.getItem("tense")  || "now";
-</script>
 
+console.log("=== CONDUCTOR STORAGE CHECK ===");
+
+for (let i = 0; i < sessionStorage.length; i++) {
+  const key = sessionStorage.key(i);
+  console.log(key, "=", sessionStorage.getItem(key));
+}
+</script>
 </head>
 <body>
 <header id="banner">Director</header>
@@ -301,28 +307,28 @@ const tense  = sessionStorage.getItem("tense")  || "now";
 
 <div id="pbar" class="zipbutton" aria-label="Program buttons">
   <div class="buttonz" data-btn="continue" title="Continuar / next lesson">
-    <img src="./trigger/adelante.png" alt="Adelante">
+    <img src="../trigger/adelante.png" alt="Adelante">
   </div>
   <div class="buttonz" data-btn="exit" title="Exit to start page">
-    <img src="./trigger/exit.png" alt="Exit">
+    <img src="../trigger/exit.png" alt="Exit">
   </div>
   <div class="buttonz" data-btn="choosel" title="Choose lesson">
-    <img src="./trigger/choosel.png" alt="Choose lesson">
+    <img src="../trigger/choosel.png" alt="Choose lesson">
   </div>
   <div class="buttonz" data-btn="help" title="Help / guidelines">
-    <img src="./trigger/help.png" alt="Help">
+    <img src="../trigger/help.png" alt="Help">
   </div>
   <div class="buttonz" data-btn="email" title="Contact Jimmy Lucky">
-    <img src="./trigger/email.png" alt="Email">
+    <img src="../trigger/email.png" alt="Email">
   </div>
   <div class="buttonz" data-btn="donate" title="Donate">
-    <img src="./trigger/donate.png" alt="Donate">
+    <img src="../trigger/donate.png" alt="Donate">
   </div>
   <div class="buttonz" data-btn="goback" title="Go back">
-    <img src="./trigger/goback.png" alt="Back">
+    <img src="../trigger/goback.png" alt="Back">
   </div>
   <div class="buttonz" data-btn="translate" title="Translation">
-    <img src="./trigger/translate.png" alt="Translate">
+    <img src="../trigger/translate.png" alt="Translate">
   </div>
 </div>
 
@@ -374,25 +380,52 @@ const tense  = sessionStorage.getItem("tense")  || "now";
   sessionStorage.setItem("lesson", String(lesson));
   sessionStorage.setItem("selectedLesson", String(lesson));
 
-  const basePath = `group/lesson${lesson}`;
+  const basePath = `../group/lesson${lesson}`;
   document.getElementById("banner").textContent = `Director — ${basePath}`;
 
   // ----- Paths -----
-  const pronImg = i => `${basePath}/pronouns/images/p${i}.png`;
-  const objImg  = i => `${basePath}/objects/images/p${i}.png`;
-  const pronAud = i => `${basePath}/pronouns/audios/a${i}.m4a`;
-  const objAud  = i => `${basePath}/objects/audios/a${i}.m4a`;
+  // This conductor supports both folder styles:
+  // 1) old split folders: pronouns/images, objects/images, pronouns/audios, objects/audios
+  // 2) newer single folders: image and sound
+  const pronImg = i => [
+    `${basePath}/pronouns/images/p${i}.png`,
+    `${basePath}/image/p${i + 10}.png`,
+    `${basePath}/image/p${i}.png`
+  ];
+  const objImg  = i => [
+    `${basePath}/objects/images/p${i}.png`,
+    `${basePath}/image/p${i}.png`
+  ];
+  const pronAud = i => [
+    `${basePath}/pronouns/audios/a${i}.m4a`,
+    `${basePath}/sound/${i + 10}.m4a`,
+    `${basePath}/sound/${i}.m4a`
+  ];
+  const objAud  = i => [
+    `${basePath}/objects/audios/a${i}.m4a`,
+    `${basePath}/sound/${i}.m4a`
+  ];
 
   // ----- Tile builder -----
-  function makeTile(src, fallbackLabel){
+  function makeTile(srcList, fallbackLabel){
+    const sources = Array.isArray(srcList) ? srcList : [srcList];
+    let srcIndex = 0;
+
     const d = document.createElement("div");
     d.className = "tile";
     const img = document.createElement("img");
-    img.src = src;
     img.alt = fallbackLabel;
+
     img.onerror = () => {
-      d.innerHTML = `<div class="label">missing:\n${fallbackLabel}</div>`;
+      srcIndex += 1;
+      if (srcIndex < sources.length) {
+        img.src = sources[srcIndex];
+      } else {
+        d.innerHTML = `<div class="label">missing:\n${fallbackLabel}</div>`;
+      }
     };
+
+    img.src = sources[srcIndex];
     d.appendChild(img);
     return d;
   }
@@ -426,7 +459,7 @@ const tense  = sessionStorage.getItem("tense")  || "now";
   // Debug badge so YOU can see tense/lesson
   const foot = document.createElement("div");
   foot.className = "foot";
-  foot.textContent = `tense=${tense}  lesson=${lesson}`;
+  foot.textContent = `tense=${tense}  lesson=${lesson}  P=${pronounSlots.length}  O=${objectSlots.length}`;
   document.body.appendChild(foot);
 
   // ----- Audio logic: no overlaps, serial uniting -----
@@ -444,15 +477,33 @@ const tense  = sessionStorage.getItem("tense")  || "now";
     const myToken = playToken;
     let i = 0;
 
+    function playOne(srcList){
+      const choices = Array.isArray(srcList) ? srcList : [srcList];
+      let choiceIndex = 0;
+
+      function tryChoice(){
+        if (myToken !== playToken) return;
+        if (choiceIndex >= choices.length) {
+          next();
+          return;
+        }
+
+        const src = choices[choiceIndex++];
+        player.onerror = tryChoice;
+        player.src = src;
+        player.currentTime = 0;
+        player.play().catch(err => {
+          console.log("play failed:", err);
+        });
+      }
+
+      tryChoice();
+    }
+
     function next(){
       if (myToken !== playToken) return;
       if (i >= sources.length) return;
-      const src = sources[i++];
-      player.src = src;
-      player.currentTime = 0;
-      player.play().catch(err => {
-        console.log("play failed:", err);
-      });
+      playOne(sources[i++]);
     }
 
     player.onended = () => {
