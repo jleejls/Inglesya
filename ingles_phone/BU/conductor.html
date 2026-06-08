@@ -4,15 +4,13 @@
 <meta charset="utf-8">
 <title>Phone Conductor</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-/ jimmy /
 <style>
-
   *{ box-sizing:border-box; }
 
   :root{
-    --frame-size:85px;
+    --frame-size:84px;
     --gap:0px;
-    --circle-size:87px;
+    --circle-size:88px;
     --button-height:39px;
   }
 
@@ -107,12 +105,6 @@
     object-fit:cover;
     display:block;
     pointer-events:none;
-  }
-
-  .expression-circle.speaking{
-    outline:4px solid #c00000;
-    outline-offset:3px;
-    box-shadow:0 0 0 5px rgba(192,0,0,.16), 0 2px 8px rgba(0,0,0,.18);
   }
 
   .label{
@@ -480,43 +472,6 @@ for (let i = 0; i < sessionStorage.length; i++) {
     `${basePath}/sound/${i}.m4a`
   ];
 
-
-  // ----- Conversation-circle audio paths -----
-  // Francisco uses the first expression circle, Rachel uses the second.
-  // These paths are intentionally read from the lesson folder; conductor does not create layout values.
-  const FRANCISCO_EXPRESSION_ID = expressionSlots[0]?.id || 8;
-  const RACHEL_EXPRESSION_ID = expressionSlots[1]?.id || 9;
-
-  function conversationAud(speaker, role, number){
-    const shortSpeaker = speaker === "francisco" ? "f" : "r";
-    const shortRole = role === "statement" ? "s" : "reply";
-
-    return [
-      `${basePath}/conversation/${speaker}_${role}_${number}.m4a`,
-      `${basePath}/conversation/${speaker}-${role}-${number}.m4a`,
-      `${basePath}/conversation/${shortSpeaker}_${shortRole}_${number}.m4a`,
-      `${basePath}/conversation/${shortSpeaker}${shortRole}${number}.m4a`,
-      `${basePath}/conversation/${speaker}${number}.m4a`,
-      `${basePath}/conversation/${shortSpeaker}${number}.m4a`
-    ];
-  }
-
-  function buildConversationItems(){
-    const items = [];
-
-    for (let i = 1; i <= 15; i++) {
-      items.push({ speakerId: FRANCISCO_EXPRESSION_ID, sources: conversationAud("francisco", "statement", i) });
-      items.push({ speakerId: RACHEL_EXPRESSION_ID, sources: conversationAud("rachel", "reply", i) });
-    }
-
-    for (let i = 1; i <= 15; i++) {
-      items.push({ speakerId: RACHEL_EXPRESSION_ID, sources: conversationAud("rachel", "statement", i) });
-      items.push({ speakerId: FRANCISCO_EXPRESSION_ID, sources: conversationAud("francisco", "reply", i) });
-    }
-
-    return items;
-  }
-
   // ----- Tile builder -----
   function makeTile(srcList, fallbackLabel, extraClass){
     const sources = Array.isArray(srcList) ? srcList : [srcList];
@@ -576,12 +531,10 @@ for (let i = 0; i < sessionStorage.length; i++) {
 
   // ----- Build expression circles: 2 centered below the square frames -----
   const exprMount = document.getElementById("expressions");
-  const expressionTilesByIndex = {};
   expressionSlots.forEach(slot => {
     const t = makeTile(pronImg(slot.id), `expression p${slot.id}.png`, "expression-circle");
     t.dataset.group = "expressions";
     t.dataset.index = slot.id;
-    expressionTilesByIndex[slot.id] = t;
     exprMount.appendChild(t);
   });
 
@@ -610,7 +563,6 @@ for (let i = 0; i < sessionStorage.length; i++) {
   }
 
   function playSequence(sources){
-    clearExpressionHighlights();
     playToken++;
     const myToken = playToken;
     let i = 0;
@@ -652,64 +604,6 @@ for (let i = 0; i < sessionStorage.length; i++) {
     next();
   }
 
-
-  function clearExpressionHighlights(){
-    Object.values(expressionTilesByIndex).forEach(tile => tile.classList.remove("speaking"));
-  }
-
-  function markExpressionSpeaker(speakerId){
-    clearExpressionHighlights();
-    const tile = expressionTilesByIndex[speakerId];
-    if (tile) tile.classList.add("speaking");
-  }
-
-  function playConversationSequence(items){
-    playToken++;
-    const myToken = playToken;
-    let i = 0;
-
-    function playOne(item){
-      const choices = Array.isArray(item.sources) ? item.sources : [item.sources];
-      let choiceIndex = 0;
-      markExpressionSpeaker(item.speakerId);
-
-      function tryChoice(){
-        if (myToken !== playToken) return;
-        if (choiceIndex >= choices.length) {
-          next();
-          return;
-        }
-
-        const src = choices[choiceIndex++];
-        player.onerror = tryChoice;
-        player.src = src;
-        player.currentTime = 0;
-        player.play().catch(err => {
-          console.log("conversation play failed:", err);
-          tryChoice();
-        });
-      }
-
-      tryChoice();
-    }
-
-    function next(){
-      if (myToken !== playToken) return;
-      if (i >= items.length) {
-        clearExpressionHighlights();
-        return;
-      }
-      playOne(items[i++]);
-    }
-
-    player.onended = () => {
-      if (myToken !== playToken) return;
-      next();
-    };
-
-    next();
-  }
-
   // ----- Click handling -----
   document.addEventListener("click", ev => {
     const el = ev.target.closest("[data-group][data-index]");
@@ -722,7 +616,7 @@ for (let i = 0; i < sessionStorage.length; i++) {
       lastPronSrc = null;
       lastPronJoinable = false;
       clearPronounSelection();
-      playConversationSequence(buildConversationItems());
+      playSequence([pronAud(index)]);
       return;
     }
 
