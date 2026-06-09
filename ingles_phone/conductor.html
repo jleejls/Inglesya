@@ -4,15 +4,14 @@
 <meta charset="utf-8">
 <title>Phone Conductor</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-/ jimmy /
 <style>
-
   *{ box-sizing:border-box; }
 
   :root{
-    --frame-size:85px;
-    --gap:0px;
-    --circle-size:87px;
+    --frame-size:84px;
+    --gap:3px;
+    --column-gap:4px;
+    --circle-size:88px;
     --button-height:39px;
   }
 
@@ -27,6 +26,7 @@
 
   body{
     padding-bottom:56px; /* keeps bottom buttons from covering lower pictures */
+    overflow-x:hidden;
   }
 
   header, h3{ display:none; }
@@ -38,12 +38,13 @@
     padding:5px 5px 2px;
   }
 
-  .section-box{ margin-bottom:5px; }
+  .section-box{ margin-bottom:var(--gap); }
 
-  .row{
+  .phone-layout-row{
     display:flex;
     justify-content:center;
-    gap:var(--gap);
+    align-items:center;
+    gap:var(--column-gap);
     margin-bottom:var(--gap);
   }
 
@@ -69,6 +70,7 @@
     height:96%;
     object-fit:contain;
     display:block;
+    pointer-events:none;
   }
 
   .object-tile img{ transform:scale(1.08); }
@@ -76,15 +78,6 @@
   .tile.selected{
     outline:4px solid #c00000;
     outline-offset:-4px;
-  }
-
-  .expression-row{
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    gap:22px;
-    min-height:46px;
-    margin:0 auto 2px;
   }
 
   .expression-circle{
@@ -107,12 +100,6 @@
     object-fit:cover;
     display:block;
     pointer-events:none;
-  }
-
-  .expression-circle.speaking{
-    outline:4px solid #c00000;
-    outline-offset:3px;
-    box-shadow:0 0 0 5px rgba(192,0,0,.16), 0 2px 8px rgba(0,0,0,.18);
   }
 
   .label{
@@ -209,15 +196,12 @@
   }
 
   @media (max-width:380px){
-    :root{ --frame-size:66px; --gap:4px; --circle-size:41px; --button-height:37px; }
     main{ padding:4px 4px 1px; }
-    .section-box{ margin-bottom:4px; }
-    .expression-row{ min-height:43px; margin-bottom:1px; }
+    .section-box{ margin-bottom:var(--gap); }
     .buttonz img{ max-height:31px; }
   }
 
   @media (max-width:330px){
-    :root{ --frame-size:60px; --gap:4px; --circle-size:38px; --button-height:35px; }
     body{ padding-bottom:52px; }
   }
 
@@ -295,7 +279,6 @@
       font-size:12px;
     }
   }
-
 </style>
 
 <script>
@@ -341,16 +324,9 @@ for (let i = 0; i < sessionStorage.length; i++) {
 
 <main>
   <section class="section-box">
-    <h3>Pronouns</h3>
-    <div id="pronouns" class="phone-rows"></div>
+    <h3>Phone Lesson</h3>
+    <div id="phoneLayoutMount" class="phone-layout"></div>
   </section>
-
-  <section class="section-box">
-    <h3>Objects</h3>
-    <div id="objects" class="phone-rows"></div>
-  </section>
-
-  <section id="expressions" class="expression-row" aria-label="Expression speakers"></section>
 </main>
 
 <div id="pbar" class="zipbutton" aria-label="Program buttons">
@@ -400,33 +376,24 @@ for (let i = 0; i < sessionStorage.length; i++) {
 
 <script>
 (function(){
-  // ----- Layout + selection data from sessionStorage -----
-  const pronounSlots = JSON.parse(sessionStorage.getItem("pronounSlots") || "[]");
-  const objectSlots  = JSON.parse(sessionStorage.getItem("objectSlots")  || "[]");
-  let expressionSlots = JSON.parse(sessionStorage.getItem("expressionSlots") || "[]");
-  const exprIds      = JSON.parse(sessionStorage.getItem("expressionPronounIds") || "[]");
-
-  // Fallback/repair layout so page still works if old storage was left over.
-  if (pronounSlots.length !== 7) {
-    pronounSlots.length = 0;
-    for (let i = 1; i <= 7; i++) {
-      pronounSlots.push({ id: i, kind: "main" });
+  // ----- Safe sessionStorage receiver -----
+  // This conductor reads the structure page's instructions.
+  // It does not repair, rewrite, resize, or reposition the stored layout.
+  function readJSON(key, fallback){
+    try{
+      const raw = sessionStorage.getItem(key);
+      if (!raw) return fallback;
+      const value = JSON.parse(raw);
+      return value == null ? fallback : value;
+    } catch(err){
+      console.warn("Bad sessionStorage JSON for", key, err);
+      return fallback;
     }
-    sessionStorage.setItem("pronounSlots", JSON.stringify(pronounSlots));
   }
 
-  if (objectSlots.length !== 10) {
-    objectSlots.length = 0;
-    for (let i = 1; i <= 10; i++) {
-      objectSlots.push({ id: i });
-    }
-    sessionStorage.setItem("objectSlots", JSON.stringify(objectSlots));
-  }
-
-  if (expressionSlots.length !== 2) {
-    expressionSlots = [{ id: 8 }, { id: 9 }];
-    sessionStorage.setItem("expressionSlots", JSON.stringify(expressionSlots));
-    sessionStorage.setItem("expressionPronounIds", JSON.stringify([8, 9]));
+  function numberOr(value, fallback){
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
   }
 
   const tense = sessionStorage.getItem("tense") || "now";
@@ -441,6 +408,65 @@ for (let i = 0; i < sessionStorage.length; i++) {
   if (!lesson || Number.isNaN(lesson)) lesson = 1;
   sessionStorage.setItem("lesson", String(lesson));
   sessionStorage.setItem("selectedLesson", String(lesson));
+
+  const phoneLayoutConfig = readJSON("phoneLayoutConfig", null);
+  const storedPronounSlots = readJSON("pronounSlots", []);
+  const storedObjectSlots = readJSON("objectSlots", []);
+  const storedExpressionSlots = readJSON("expressionSlots", []);
+  const exprIds = readJSON("expressionPronounIds", [8, 9]);
+
+  // Display-only emergency fallbacks. These keep the page from going blank if
+  // structure.html was bypassed, but they are never written back into storage.
+  const pronounSlots = Array.isArray(storedPronounSlots) && storedPronounSlots.length
+    ? storedPronounSlots
+    : [1,2,3,4,5,6,7].map(id => ({ id, kind:"main" }));
+
+  const objectSlots = Array.isArray(storedObjectSlots) && storedObjectSlots.length
+    ? storedObjectSlots
+    : [1,2,3,4,5,6,7,8,9,10].map(id => ({ id }));
+
+  const expressionSlots = Array.isArray(storedExpressionSlots) && storedExpressionSlots.length
+    ? storedExpressionSlots
+    : [8,9].map(id => ({ id }));
+
+  const layoutRows = phoneLayoutConfig && Array.isArray(phoneLayoutConfig.rows) && phoneLayoutConfig.rows.length
+    ? phoneLayoutConfig.rows
+    : [
+        { group:"pronouns", ids:[1,2,3] },
+        { group:"pronouns", ids:[4,5,6,7] },
+        { group:"objects", ids:[1,2,3] },
+        { group:"objects", ids:[4,5,6,7] },
+        { group:"objects", ids:[8,9,10] },
+        { group:"expressions", ids:[8,9] }
+      ];
+
+  // Apply only the structure-provided layout values.
+  // These are not conductor decisions; they are the conductor obeying structure.html.
+  (function applyStructureLayout(){
+    const root = document.documentElement;
+    const scale = phoneLayoutConfig ? numberOr(phoneLayoutConfig.frameScale, 1) : 1;
+    const rowGap = phoneLayoutConfig ? numberOr(phoneLayoutConfig.rowGapPx, 3) : 3;
+    const columnGap = phoneLayoutConfig ? numberOr(phoneLayoutConfig.columnGapPx, rowGap) : 4;
+
+    const viewportWidth = Math.max(300, Math.min(window.innerWidth || 360, 420));
+    const largestRow = layoutRows.reduce((max, row) => Math.max(max, Array.isArray(row.ids) ? row.ids.length : 0), 1);
+    const usableWidth = viewportWidth - 10 - Math.max(0, largestRow - 1) * columnGap;
+    const baseFrameSize = Math.floor(usableWidth / largestRow);
+    const requestedFrameSize = Math.floor(baseFrameSize * scale);
+    const maxFrameSize = Math.floor(usableWidth / largestRow);
+    const frameSize = Math.max(56, Math.min(requestedFrameSize, maxFrameSize));
+    const circleSize = Math.max(58, Math.min(96, Math.round(frameSize * 1.04)));
+
+    root.style.setProperty("--frame-size", frameSize + "px");
+    root.style.setProperty("--gap", rowGap + "px");
+    root.style.setProperty("--column-gap", columnGap + "px");
+    root.style.setProperty("--circle-size", circleSize + "px");
+
+    if (phoneLayoutConfig && phoneLayoutConfig.preventScrolling) {
+      document.documentElement.style.overflowX = "hidden";
+      document.body.style.overflowX = "hidden";
+    }
+  })();
 
   // IMPORTANT: phone conductor sits inside ingles_phone.
   // group is one folder above ingles_phone, so we use ../group
@@ -480,43 +506,6 @@ for (let i = 0; i < sessionStorage.length; i++) {
     `${basePath}/sound/${i}.m4a`
   ];
 
-
-  // ----- Conversation-circle audio paths -----
-  // Francisco uses the first expression circle, Rachel uses the second.
-  // These paths are intentionally read from the lesson folder; conductor does not create layout values.
-  const FRANCISCO_EXPRESSION_ID = expressionSlots[0]?.id || 8;
-  const RACHEL_EXPRESSION_ID = expressionSlots[1]?.id || 9;
-
-  function conversationAud(speaker, role, number){
-    const shortSpeaker = speaker === "francisco" ? "f" : "r";
-    const shortRole = role === "statement" ? "s" : "reply";
-
-    return [
-      `${basePath}/conversation/${speaker}_${role}_${number}.m4a`,
-      `${basePath}/conversation/${speaker}-${role}-${number}.m4a`,
-      `${basePath}/conversation/${shortSpeaker}_${shortRole}_${number}.m4a`,
-      `${basePath}/conversation/${shortSpeaker}${shortRole}${number}.m4a`,
-      `${basePath}/conversation/${speaker}${number}.m4a`,
-      `${basePath}/conversation/${shortSpeaker}${number}.m4a`
-    ];
-  }
-
-  function buildConversationItems(){
-    const items = [];
-
-    for (let i = 1; i <= 15; i++) {
-      items.push({ speakerId: FRANCISCO_EXPRESSION_ID, sources: conversationAud("francisco", "statement", i) });
-      items.push({ speakerId: RACHEL_EXPRESSION_ID, sources: conversationAud("rachel", "reply", i) });
-    }
-
-    for (let i = 1; i <= 15; i++) {
-      items.push({ speakerId: RACHEL_EXPRESSION_ID, sources: conversationAud("rachel", "statement", i) });
-      items.push({ speakerId: FRANCISCO_EXPRESSION_ID, sources: conversationAud("francisco", "reply", i) });
-    }
-
-    return items;
-  }
-
   // ----- Tile builder -----
   function makeTile(srcList, fallbackLabel, extraClass){
     const sources = Array.isArray(srcList) ? srcList : [srcList];
@@ -542,47 +531,56 @@ for (let i = 0; i < sessionStorage.length; i++) {
     return d;
   }
 
-  function buildRows(mount, slots, rowPattern, buildTile){
-    let n = 0;
-    rowPattern.forEach(count => {
-      const row = document.createElement("div");
-      row.className = "row";
-      for (let j = 0; j < count; j++) {
-        if (n >= slots.length) break;
-        row.appendChild(buildTile(slots[n++]));
-      }
-      mount.appendChild(row);
-    });
+  function findSlot(slots, id){
+    return slots.find(slot => Number(slot.id) === Number(id)) || { id };
   }
 
-  // ----- Build pronoun tiles: 3 + 4 -----
-  const pronMount = document.getElementById("pronouns");
-  buildRows(pronMount, pronounSlots, [3, 4], slot => {
-    const t = makeTile(pronImg(slot.id), `p${slot.id}.png`, "pronoun-tile");
-    t.dataset.group = "pronouns";
-    t.dataset.index = slot.id;
-    t.dataset.kind  = slot.kind || "main";
-    return t;
-  });
+  function buildOneTile(group, id){
+    let tile;
 
-  // ----- Build object tiles: 3 + 4 + 3 -----
-  const objMount = document.getElementById("objects");
-  buildRows(objMount, objectSlots, [3, 4, 3], slot => {
-    const t = makeTile(objImg(slot.id), `p${slot.id}.png`, "object-tile");
-    t.dataset.group = "objects";
-    t.dataset.index = slot.id;
-    return t;
-  });
+    if (group === "pronouns") {
+      const slot = findSlot(pronounSlots, id);
+      tile = makeTile(pronImg(slot.id), `p${slot.id}.png`, "pronoun-tile");
+      tile.dataset.group = "pronouns";
+      tile.dataset.index = slot.id;
+      tile.dataset.kind = slot.kind || "main";
+      return tile;
+    }
 
-  // ----- Build expression circles: 2 centered below the square frames -----
-  const exprMount = document.getElementById("expressions");
-  const expressionTilesByIndex = {};
-  expressionSlots.forEach(slot => {
-    const t = makeTile(pronImg(slot.id), `expression p${slot.id}.png`, "expression-circle");
-    t.dataset.group = "expressions";
-    t.dataset.index = slot.id;
-    expressionTilesByIndex[slot.id] = t;
-    exprMount.appendChild(t);
+    if (group === "objects") {
+      const slot = findSlot(objectSlots, id);
+      tile = makeTile(objImg(slot.id), `o${slot.id}.png`, "object-tile");
+      tile.dataset.group = "objects";
+      tile.dataset.index = slot.id;
+      return tile;
+    }
+
+    if (group === "expressions") {
+      const slot = findSlot(expressionSlots, id);
+      tile = makeTile(pronImg(slot.id), `expression p${slot.id}.png`, "expression-circle");
+      tile.dataset.group = "expressions";
+      tile.dataset.index = slot.id;
+      return tile;
+    }
+
+    return null;
+  }
+
+  // ----- Build exactly the rows provided by structure.html -----
+  const mount = document.getElementById("phoneLayoutMount");
+  layoutRows.forEach(rowSpec => {
+    if (!rowSpec || !Array.isArray(rowSpec.ids)) return;
+
+    const row = document.createElement("div");
+    row.className = "phone-layout-row";
+    row.dataset.group = rowSpec.group || "unknown";
+
+    rowSpec.ids.forEach(id => {
+      const tile = buildOneTile(rowSpec.group, id);
+      if (tile) row.appendChild(tile);
+    });
+
+    mount.appendChild(row);
   });
 
   // Debug badge
@@ -590,6 +588,17 @@ for (let i = 0; i < sessionStorage.length; i++) {
   foot.className = "foot";
   foot.textContent = `tense=${tense}  lesson=${lesson}  P=${pronounSlots.length}  O=${objectSlots.length}  E=${expressionSlots.length}`;
   document.body.appendChild(foot);
+
+  console.log("=== PHONE CONDUCTOR RECEIVED STRUCTURE ===", {
+    lesson,
+    tense,
+    phoneLayoutConfig,
+    pronounSlots,
+    objectSlots,
+    expressionSlots,
+    expressionPronounIds: exprIds,
+    layoutRows
+  });
 
   // ----- Audio logic: no overlaps, serial uniting -----
   const player = document.getElementById("player");
@@ -609,8 +618,11 @@ for (let i = 0; i < sessionStorage.length; i++) {
     selectedPronTile.classList.add("selected");
   }
 
+  function isExpressionPronoun(index){
+    return Array.isArray(exprIds) && exprIds.map(Number).includes(Number(index));
+  }
+
   function playSequence(sources){
-    clearExpressionHighlights();
     playToken++;
     const myToken = playToken;
     let i = 0;
@@ -652,64 +664,6 @@ for (let i = 0; i < sessionStorage.length; i++) {
     next();
   }
 
-
-  function clearExpressionHighlights(){
-    Object.values(expressionTilesByIndex).forEach(tile => tile.classList.remove("speaking"));
-  }
-
-  function markExpressionSpeaker(speakerId){
-    clearExpressionHighlights();
-    const tile = expressionTilesByIndex[speakerId];
-    if (tile) tile.classList.add("speaking");
-  }
-
-  function playConversationSequence(items){
-    playToken++;
-    const myToken = playToken;
-    let i = 0;
-
-    function playOne(item){
-      const choices = Array.isArray(item.sources) ? item.sources : [item.sources];
-      let choiceIndex = 0;
-      markExpressionSpeaker(item.speakerId);
-
-      function tryChoice(){
-        if (myToken !== playToken) return;
-        if (choiceIndex >= choices.length) {
-          next();
-          return;
-        }
-
-        const src = choices[choiceIndex++];
-        player.onerror = tryChoice;
-        player.src = src;
-        player.currentTime = 0;
-        player.play().catch(err => {
-          console.log("conversation play failed:", err);
-          tryChoice();
-        });
-      }
-
-      tryChoice();
-    }
-
-    function next(){
-      if (myToken !== playToken) return;
-      if (i >= items.length) {
-        clearExpressionHighlights();
-        return;
-      }
-      playOne(items[i++]);
-    }
-
-    player.onended = () => {
-      if (myToken !== playToken) return;
-      next();
-    };
-
-    next();
-  }
-
   // ----- Click handling -----
   document.addEventListener("click", ev => {
     const el = ev.target.closest("[data-group][data-index]");
@@ -722,16 +676,24 @@ for (let i = 0; i < sessionStorage.length; i++) {
       lastPronSrc = null;
       lastPronJoinable = false;
       clearPronounSelection();
-      playConversationSequence(buildConversationItems());
+      playSequence([pronAud(index)]);
       return;
     }
 
     if (group === "pronouns") {
       const src = pronAud(index);
-      lastPronSrc = src;
-      lastPronJoinable = true;
-      selectPronounTile(el);
-      playSequence([src]);
+
+      if (isExpressionPronoun(index)) {
+        lastPronSrc = null;
+        lastPronJoinable = false;
+        clearPronounSelection();
+        playSequence([src]);
+      } else {
+        lastPronSrc = src;
+        lastPronJoinable = true;
+        selectPronounTile(el);
+        playSequence([src]);
+      }
       return;
     }
 
