@@ -417,10 +417,9 @@ for (let i = 0; i < sessionStorage.length; i++) {
   <div class="buttonz" data-btn="continue" title="Advance to next page">
   <img src="../trigger/adelante.png" alt="Advance">
 </div>
-<div class="buttonz" data-btn="exit" title="Exit"
-     onclick="window.location.assign('../quit.html');">
-  <img src="../trigger/exit.png">
-</div>
+  <div class="buttonz" data-btn="exit" title="Exit to start page">
+    <img src="../trigger/exit.png" alt="Exit">
+  </div>
   <div class="buttonz" data-btn="choosel" title="Choose lesson">
     <img src="../trigger/choosel.png" alt="Choose lesson">
   </div>
@@ -888,7 +887,7 @@ function closeContactOverlay(){
     },
 
     exit(){
-      goTo("../quit.html");
+      goTo("index.html");
     },
 
     choosel(){

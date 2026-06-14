@@ -2,213 +2,169 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Conductor</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Phone Conductor</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+/ jimmy /
 <style>
-   :root{
-    --trigger-size: 54px;
-    --trigger-gap: 8px;
-    --trigger-pad-y: 8px;
-    --trigger-pad-x: 10px;
-    --trigger-bar-height: calc(var(--trigger-size) + (var(--trigger-pad-y) * 2));
-  }
+
   *{ box-sizing:border-box; }
+
+  :root{
+    --frame-size:85px;
+    --gap:0px;
+    --circle-size:87px;
+    --button-height:39px;
+  }
+
   html, body{
     margin:0;
     width:100%;
-    height:100%;
+    min-height:100%;
     background:#ffffff;
-    overflow:auto;
     font-family:Arial, Helvetica, sans-serif;
-  }
-  body{
-    margin:0;
-    font-family:system-ui,Segoe UI,Roboto,Arial;
-    background:#ffffff;
     color:#222;
   }
-  header{
-    padding:10px 14px;
-    background:#6b1111;
-    color:#fff;
-    font-weight:600;
-    font-size:15px;
+
+  body{
+    padding-bottom:56px; /* keeps bottom buttons from covering lower pictures */
   }
+
+  header, h3{ display:none; }
+
   main{
-    max-width:1140px;
+    width:100%;
+    max-width:420px;
     margin:0 auto;
-    padding:12px 12px 64px;
+    padding:5px 5px 2px;
   }
 
-  h3{
-    margin:8px 4px;
-    font-size:15px;
-  }
+  .section-box{ margin-bottom:5px; }
 
-  /* Three columns: objects left, pronouns center, objects right */
-  .director-grid{
-    display:grid;
-    grid-template-columns:minmax(0,.8fr) minmax(0,1.4fr) minmax(0,.8fr);
-    gap:6px;
-    align-items:flex-start;
-  }
-  .director-column{
-    min-width:0;
-  }
-
-  @media (max-width:900px){
-    .director-grid{
-      grid-template-columns:1fr;
-    }
-  }
-
-  /* Pronoun area: 3x3 grid */
-  .pronoun-grid{
-    display:grid;
-    grid-template-columns:repeat(3,minmax(0,1fr));
-    gap:3px;
-  }
-
-  /* Object columns: 5 vertical tiles each */
-  .object-col{
+  .row{
     display:flex;
-    flex-direction:column;
-    gap:3px;
+    justify-content:center;
+    gap:var(--gap);
+    margin-bottom:var(--gap);
   }
 
-/* Make object pictures visually larger */
-.object-slot {
-  overflow: hidden;
-}
-
-.object-slot img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  transform: scale(1.35);
-}
-
-.tile{
+  .tile{
     position:relative;
+    width:var(--frame-size);
+    height:var(--frame-size);
     border:1px solid #d7dbe3;
-    border-radius:10px;
-    overflow:visible;
-    cursor:pointer;
+    border-radius:9px;
     background:#f9fafb;
-    aspect-ratio:1/1;
-    max-height:150px;
+    overflow:hidden;
+    cursor:pointer;
     display:flex;
     align-items:center;
     justify-content:center;
-}
-
-/* shrink ONLY object slots */
-#objLeft .tile,
-#objRight .tile {
-    max-height:105px;
-    aspect-ratio:1/1;
-    overflow:hidden;
-}
-
-#objLeft .tile img,
-#objRight .tile img {
-    width:100%;
-    height:100%;
-    max-width:none;
-    max-height:none;
-    object-fit:contain;
-    transform:scale(1.45);
-}
-
-/* your existing img rules can stay as they are */
-.tile img{
-    width:100%;
-    height:100%;
-    object-fit:contain;
-    display:block;
-}
-
-#objLeft .tile img,
-#objRight .tile img {
-    max-width:60%;
-    max-height:60%;
-}
-
-
-
-  .label{
-    font:11px/1.2 monospace;
-    color:#555;
-    text-align:center;
-    padding:4px;
-    white-space:pre-line;
   }
 
+  .pronoun-tile{ background:#fffdf7; }
+  .object-tile{ background:#f9fbff; }
 
+  .tile img{
+    width:96%;
+    height:96%;
+    object-fit:contain;
+    display:block;
+  }
 
-/* Make desktop pronoun expression frames P8 and P9 round */
-#pronouns .tile[data-index="8"],
-#pronouns .tile[data-index="9"] {
+  .object-tile img{ transform:scale(1.08); }
+
+  .tile.selected{
+    outline:4px solid #c00000;
+    outline-offset:-4px;
+  }
+
+  .expression-row{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:22px;
+    min-height:46px;
+    margin:0 auto 2px;
+  }
+
+  .expression-circle{
+    width:var(--circle-size);
+    height:var(--circle-size);
     border-radius:50%;
+    border:2px solid #9a74b8;
+    background:#ffffff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
     overflow:hidden;
-}
+    cursor:pointer;
+    box-shadow:0 2px 6px rgba(0,0,0,.14);
+  }
 
-#pronouns .tile[data-index="8"] img,
-#pronouns .tile[data-index="9"] img {
-    border-radius:50%;
-    width:75%;
-    height:75%;
-}
+  .expression-circle img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+    pointer-events:none;
+  }
 
-#pronouns .tile[data-index="8"].speaking,
-#pronouns .tile[data-index="9"].speaking {
+  .expression-circle.speaking{
     outline:4px solid #c00000;
     outline-offset:3px;
     box-shadow:0 0 0 5px rgba(192,0,0,.16), 0 2px 8px rgba(0,0,0,.18);
-}
+  }
 
-  /* Bottom image buttons copied from the button-study essence */
+  .label{
+    font:9px/1.15 monospace;
+    color:#777;
+    text-align:center;
+    padding:3px;
+    white-space:pre-line;
+  }
+
+  .expression-circle .label{
+    font-size:10px;
+    color:#5b3972;
+  }
+
+  .foot{ display:none; }
+
+  /* Bottom image-button bar */
   .zipbutton{
-    display:flex;
-    flex-direction:row;
-    align-items:center;
-    justify-content:center;
-    gap:2vh;
     position:fixed;
-    bottom:2vh;
-    left:50%;
-    transform:translateX(-50%);
-    background-color:#f0f0f0;
-    padding:6px 10px;
-    border-radius:10px;
-    border:1px solid #ddd;
-    z-index:50;
+    left:0;
+    right:0;
+    bottom:0;
+    z-index:80;
+    display:grid;
+    grid-template-columns:repeat(8, 1fr);
+    gap:4px;
+    background:#f0f0f0;
+    border-top:1px solid #ddd;
+    padding:5px;
+    max-width:420px;
+    margin:0 auto;
   }
 
   .buttonz{
+    min-height:var(--button-height);
     border:2px solid #4CAF50;
-    border-radius:1vw;
-    height:5vh;
-    width:5vw;
-    min-width:56px;
-    min-height:36px;
+    border-radius:9px;
+    background:#d05000;
     display:flex;
     align-items:center;
     justify-content:center;
-    font-size:14px;
-    background-color:#d05000;
     cursor:pointer;
   }
 
   .buttonz img{
     max-width:100%;
-    max-height:100%;
+    max-height:34px;
     display:block;
     pointer-events:none;
   }
 
-
-  /* Email contact overlay: stays invisible until the email button opens it */
   .contact-overlay{
     position:fixed;
     inset:0;
@@ -220,14 +176,12 @@
     padding:20px;
   }
 
-  .contact-overlay[hidden]{
-    display:none;
-  }
+  .contact-overlay[hidden]{ display:none; }
 
   .contact-box{
     background:white;
     color:black;
-    padding:25px;
+    padding:22px;
     border-radius:12px;
     max-width:430px;
     text-align:center;
@@ -254,21 +208,17 @@
     margin:10px 0 14px;
   }
 
-  /* Small debug badge */
-  .foot{
-    position:fixed;
-    left:8px;
-    bottom:10vh;
-    background:#ffe8a3;
-    border-radius:8px;
-    padding:4px 6px;
-    font:10px/1.2 monospace;
+  @media (max-width:380px){
+    :root{ --frame-size:66px; --gap:4px; --circle-size:41px; --button-height:37px; }
+    main{ padding:4px 4px 1px; }
+    .section-box{ margin-bottom:4px; }
+    .expression-row{ min-height:43px; margin-bottom:1px; }
+    .buttonz img{ max-height:31px; }
   }
 
-  @media (max-width:600px){
-    main{
-      padding-bottom:80px;
-    }
+  @media (max-width:330px){
+    :root{ --frame-size:60px; --gap:4px; --circle-size:38px; --button-height:35px; }
+    body{ padding-bottom:52px; }
   }
 
   /* Lesson preparation overlay */
@@ -347,8 +297,9 @@
   }
 
 </style>
+
 <script>
-// ----- Conductor startup -----
+// ----- Phone Conductor startup -----
 // Accept the lesson number no matter which earlier page stored it.
 (function () {
   const storedLesson =
@@ -368,17 +319,14 @@
   }
 })();
 
-const lesson = sessionStorage.getItem("lesson") || "1";
-const tense  = sessionStorage.getItem("tense")  || "now";
-
-console.log("=== CONDUCTOR STORAGE CHECK ===");
-
+console.log("=== PHONE CONDUCTOR STORAGE CHECK ===");
 for (let i = 0; i < sessionStorage.length; i++) {
   const key = sessionStorage.key(i);
   console.log(key, "=", sessionStorage.getItem(key));
 }
 </script>
 </head>
+
 <body>
 
 <div id="prepOverlay" class="prep-overlay" role="status" aria-live="polite" aria-label="Lesson preparation message">
@@ -389,38 +337,29 @@ for (let i = 0; i < sessionStorage.length; i++) {
   </div>
 </div>
 
-<header id="banner">Director</header>
+<header id="banner">Phone Conductor</header>
 
 <main>
-  <div class="director-grid">
-    <!-- LEFT: objects 1–5 -->
-    <section class="director-column">
-      <h3>Objects</h3>
-      <div id="objLeft" class="object-col"></div>
-    </section>
+  <section class="section-box">
+    <h3>Pronouns</h3>
+    <div id="pronouns" class="phone-rows"></div>
+  </section>
 
-    <!-- CENTER: pronouns 1–9 -->
-    <section class="director-column">
-      <h3>Pronouns</h3>
-      <div id="pronouns" class="pronoun-grid"></div>
-    </section>
+  <section class="section-box">
+    <h3>Objects</h3>
+    <div id="objects" class="phone-rows"></div>
+  </section>
 
-    <!-- RIGHT: objects 6–10 -->
-    <section class="director-column">
-      <h3>&nbsp;</h3>
-      <div id="objRight" class="object-col"></div>
-    </section>
-  </div>
+  <section id="expressions" class="expression-row" aria-label="Expression speakers"></section>
 </main>
 
 <div id="pbar" class="zipbutton" aria-label="Program buttons">
-  <div class="buttonz" data-btn="continue" title="Advance to next page">
-  <img src="../trigger/adelante.png" alt="Advance">
-</div>
-<div class="buttonz" data-btn="exit" title="Exit"
-     onclick="window.location.assign('../quit.html');">
-  <img src="../trigger/exit.png">
-</div>
+  <div class="buttonz" data-btn="continue" title="Continuar / next lesson">
+    <img src="../trigger/adelante.png" alt="Adelante">
+  </div>
+  <div class="buttonz" data-btn="exit" title="Exit to start page">
+    <img src="../trigger/exit.png" alt="Exit">
+  </div>
   <div class="buttonz" data-btn="choosel" title="Choose lesson">
     <img src="../trigger/choosel.png" alt="Choose lesson">
   </div>
@@ -453,11 +392,10 @@ for (let i = 0; i < sessionStorage.length; i++) {
       Open Gmail
     </a>
 
-       <button type="button" onclick="closeContactOverlay()">
-      Go Back
-    </button>
+    <button type="button" onclick="closeContactOverlay()">Go Back</button>
   </div>
 </div>
+
 <audio id="player" preload="auto"></audio>
 
 <script>
@@ -465,62 +403,89 @@ for (let i = 0; i < sessionStorage.length; i++) {
   // ----- Layout + selection data from sessionStorage -----
   const pronounSlots = JSON.parse(sessionStorage.getItem("pronounSlots") || "[]");
   const objectSlots  = JSON.parse(sessionStorage.getItem("objectSlots")  || "[]");
+  let expressionSlots = JSON.parse(sessionStorage.getItem("expressionSlots") || "[]");
   const exprIds      = JSON.parse(sessionStorage.getItem("expressionPronounIds") || "[]");
 
-  // Fallback layout so page still works if nothing was stored
-  if (!pronounSlots.length) {
-    for (let i = 1; i <= 9; i++) {
-      pronounSlots.push({ id: i, kind: i <= 7 ? "main" : "expression" });
+  // Fallback/repair layout so page still works if old storage was left over.
+  if (pronounSlots.length !== 7) {
+    pronounSlots.length = 0;
+    for (let i = 1; i <= 7; i++) {
+      pronounSlots.push({ id: i, kind: "main" });
     }
+    sessionStorage.setItem("pronounSlots", JSON.stringify(pronounSlots));
   }
-  if (!objectSlots.length) {
+
+  if (objectSlots.length !== 10) {
+    objectSlots.length = 0;
     for (let i = 1; i <= 10; i++) {
-      objectSlots.push({ id: i, column: i <= 5 ? 1 : 2 });
+      objectSlots.push({ id: i });
     }
+    sessionStorage.setItem("objectSlots", JSON.stringify(objectSlots));
   }
-  const tense  = sessionStorage.getItem("tense")  || "now";
+
+  if (expressionSlots.length !== 2) {
+    expressionSlots = [{ id: 8 }, { id: 9 }];
+    sessionStorage.setItem("expressionSlots", JSON.stringify(expressionSlots));
+    sessionStorage.setItem("expressionPronounIds", JSON.stringify([8, 9]));
+  }
+
+  const tense = sessionStorage.getItem("tense") || "now";
+
   let lesson = Number(
     sessionStorage.getItem("lesson") ||
     sessionStorage.getItem("selectedLesson") ||
     sessionStorage.getItem("currentLesson") ||
     "1"
   );
+
   if (!lesson || Number.isNaN(lesson)) lesson = 1;
   sessionStorage.setItem("lesson", String(lesson));
   sessionStorage.setItem("selectedLesson", String(lesson));
 
+  // IMPORTANT: phone conductor sits inside ingles_phone.
+  // group is one folder above ingles_phone, so we use ../group
   const basePath = `../group/lesson${lesson}`;
-  document.getElementById("banner").textContent = `Director — ${basePath}`;
+  document.getElementById("banner").textContent = `Phone — Lesson ${lesson}`;
 
   // ----- Paths -----
-  // This conductor supports both folder styles:
-  // 1) old split folders: pronouns/images, objects/images, pronouns/audios, objects/audios
+  // Supports both folder styles:
+  // 1) older split folders: pronouns/images, objects/images, pronouns/audios, objects/audios
   // 2) newer single folders: image and sound
   const pronImg = i => [
-    `${basePath}/pronouns/images/p${i}.png`,
     `${basePath}/image/p${i + 10}.png`,
-    `${basePath}/image/p${i}.png`
+    `${basePath}/image/p${i}.png`,
+    `${basePath}/pronouns/images/p${i}.png`,
+    `${basePath}/pronouns/images/img_${i}.png`,
+    `${basePath}/pronouns/image/p${i}.png`
   ];
-  const objImg  = i => [
+
+  const objImg = i => [
+    `${basePath}/image/p${i}.png`,
+    `${basePath}/image/o${i}.png`,
     `${basePath}/objects/images/p${i}.png`,
-    `${basePath}/image/p${i}.png`
+    `${basePath}/objects/images/img_${i}.png`,
+    `${basePath}/objects/image/o${i}.png`,
+    `${basePath}/image/p${i + 9}.png`,
+    `${basePath}/image/p${i + 10}.png`
   ];
+
   const pronAud = i => [
     `${basePath}/pronouns/audios/a${i}.m4a`,
     `${basePath}/sound/${i + 10}.m4a`,
     `${basePath}/sound/${i}.m4a`
   ];
-  const objAud  = i => [
+
+  const objAud = i => [
     `${basePath}/objects/audios/a${i}.m4a`,
     `${basePath}/sound/${i}.m4a`
   ];
 
 
   // ----- Conversation-circle audio paths -----
-  // Francisco uses expression pronoun P8, Rachel uses expression pronoun P9.
-  // These paths are read from the lesson folder; conductor does not create layout values.
-  const FRANCISCO_EXPRESSION_ID = exprIds[0] || 8;
-  const RACHEL_EXPRESSION_ID = exprIds[1] || 9;
+  // Francisco uses the first expression circle, Rachel uses the second.
+  // These paths are intentionally read from the lesson folder; conductor does not create layout values.
+  const FRANCISCO_EXPRESSION_ID = expressionSlots[0]?.id || 8;
+  const RACHEL_EXPRESSION_ID = expressionSlots[1]?.id || 9;
 
   function conversationAud(speaker, role, number){
     const shortSpeaker = speaker === "francisco" ? "f" : "r";
@@ -553,12 +518,13 @@ for (let i = 0; i < sessionStorage.length; i++) {
   }
 
   // ----- Tile builder -----
-  function makeTile(srcList, fallbackLabel){
+  function makeTile(srcList, fallbackLabel, extraClass){
     const sources = Array.isArray(srcList) ? srcList : [srcList];
     let srcIndex = 0;
 
     const d = document.createElement("div");
-    d.className = "tile";
+    d.className = extraClass ? `tile ${extraClass}` : "tile";
+
     const img = document.createElement("img");
     img.alt = fallbackLabel;
 
@@ -576,52 +542,71 @@ for (let i = 0; i < sessionStorage.length; i++) {
     return d;
   }
 
-  // ----- Build pronoun tiles (3×3 grid, ids 1..9) -----
+  function buildRows(mount, slots, rowPattern, buildTile){
+    let n = 0;
+    rowPattern.forEach(count => {
+      const row = document.createElement("div");
+      row.className = "row";
+      for (let j = 0; j < count; j++) {
+        if (n >= slots.length) break;
+        row.appendChild(buildTile(slots[n++]));
+      }
+      mount.appendChild(row);
+    });
+  }
+
+  // ----- Build pronoun tiles: 3 + 4 -----
   const pronMount = document.getElementById("pronouns");
-  const expressionTilesByIndex = {};
-  pronounSlots.forEach(slot => {
-    const t = makeTile(pronImg(slot.id), `p${slot.id}.png`);
+  buildRows(pronMount, pronounSlots, [3, 4], slot => {
+    const t = makeTile(pronImg(slot.id), `p${slot.id}.png`, "pronoun-tile");
     t.dataset.group = "pronouns";
     t.dataset.index = slot.id;
-    t.dataset.kind  = slot.kind || "main"; // "main" or "expression"
-    if (isExpressionPronoun(slot.id)) {
-      expressionTilesByIndex[slot.id] = t;
-    }
-    pronMount.appendChild(t);
+    t.dataset.kind  = slot.kind || "main";
+    return t;
   });
 
-  // ----- Build object tiles (5 left, 5 right) -----
-  const leftCol  = document.getElementById("objLeft");
-  const rightCol = document.getElementById("objRight");
-
-  objectSlots.forEach(slot => {
-    const t = makeTile(objImg(slot.id), `p${slot.id}.png`);
+  // ----- Build object tiles: 3 + 4 + 3 -----
+  const objMount = document.getElementById("objects");
+  buildRows(objMount, objectSlots, [3, 4, 3], slot => {
+    const t = makeTile(objImg(slot.id), `p${slot.id}.png`, "object-tile");
     t.dataset.group = "objects";
     t.dataset.index = slot.id;
-
-    if (slot.column === 1) {
-      leftCol.appendChild(t);
-    } else {
-      rightCol.appendChild(t);
-    }
+    return t;
   });
 
-  // Debug badge so YOU can see tense/lesson
+  // ----- Build expression circles: 2 centered below the square frames -----
+  const exprMount = document.getElementById("expressions");
+  const expressionTilesByIndex = {};
+  expressionSlots.forEach(slot => {
+    const t = makeTile(pronImg(slot.id), `expression p${slot.id}.png`, "expression-circle");
+    t.dataset.group = "expressions";
+    t.dataset.index = slot.id;
+    expressionTilesByIndex[slot.id] = t;
+    exprMount.appendChild(t);
+  });
+
+  // Debug badge
   const foot = document.createElement("div");
   foot.className = "foot";
-  foot.textContent = `tense=${tense}  lesson=${lesson}  P=${pronounSlots.length}  O=${objectSlots.length}`;
+  foot.textContent = `tense=${tense}  lesson=${lesson}  P=${pronounSlots.length}  O=${objectSlots.length}  E=${expressionSlots.length}`;
   document.body.appendChild(foot);
 
   // ----- Audio logic: no overlaps, serial uniting -----
   const player = document.getElementById("player");
   let lastPronSrc = null;
   let lastPronJoinable = false;
+  let selectedPronTile = null;
   let playToken = 0;
 
-  function isExpressionPronoun(index){
-    // A8 and A9 are expression audios.
-    // They must always play alone and must never be saved for joining with objects.
-    return index === 8 || index === 9 || exprIds.includes(index);
+  function clearPronounSelection(){
+    if (selectedPronTile) selectedPronTile.classList.remove("selected");
+    selectedPronTile = null;
+  }
+
+  function selectPronounTile(tile){
+    clearPronounSelection();
+    selectedPronTile = tile;
+    selectedPronTile.classList.add("selected");
   }
 
   function playSequence(sources){
@@ -678,83 +663,10 @@ for (let i = 0; i < sessionStorage.length; i++) {
     if (tile) tile.classList.add("speaking");
   }
 
-  // Conversation stepping: one click plays one two-part exchange, then stops.
-  // The exchanges are shuffled, so the student does not hear 1,2,3,4 every time.
-  // After every exchange in the active set has been used once, the shuffle bag refills
-  // and a new random round begins automatically.
-  //
-  // For the current Lesson 1 trial, this is set to false because you have
-  // Francisco statements + Rachel replies prepared.
-  // Later, after Rachel statements + Francisco replies are recorded, change this to true.
-  const USE_RACHEL_STATEMENT_ROUND = false;
-
-  let conversationShuffleBag = [];
-
-  function buildConversationPairs(){
-    const pairs = [];
-
-    // Francisco asks / Rachel replies: 15 two-part exchanges.
-    for (let i = 1; i <= 15; i++) {
-      pairs.push([
-        { speakerId: FRANCISCO_EXPRESSION_ID, sources: conversationAud("francisco", "statement", i) },
-        { speakerId: RACHEL_EXPRESSION_ID, sources: conversationAud("rachel", "reply", i) }
-      ]);
-    }
-
-    // Rachel asks / Francisco replies: second 15 exchanges.
-    // Turn this on after those 30 additional audio files exist.
-    if (USE_RACHEL_STATEMENT_ROUND) {
-      for (let i = 1; i <= 15; i++) {
-        pairs.push([
-          { speakerId: RACHEL_EXPRESSION_ID, sources: conversationAud("rachel", "statement", i) },
-          { speakerId: FRANCISCO_EXPRESSION_ID, sources: conversationAud("francisco", "reply", i) }
-        ]);
-      }
-    }
-
-    return pairs;
-  }
-
-  function shuffleArray(items){
-    for (let i = items.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      const temp = items[i];
-      items[i] = items[j];
-      items[j] = temp;
-    }
-    return items;
-  }
-
-  function refillConversationShuffleBag(){
-    conversationShuffleBag = shuffleArray(buildConversationPairs());
-  }
-
-  function playRandomConversationPair(){
-    if (!conversationShuffleBag.length) {
-      refillConversationShuffleBag();
-    }
-
-    if (!conversationShuffleBag.length) return;
-
-    const pairItems = conversationShuffleBag.shift();
-    playConversationPairOnly(pairItems);
-  }
-
-  function playConversationPairOnly(items){
+  function playConversationSequence(items){
     playToken++;
     const myToken = playToken;
     let i = 0;
-
-    try { player.pause(); } catch(e) {}
-    player.onended = null;
-    player.onerror = null;
-
-    function stopPair(){
-      if (myToken !== playToken) return;
-      player.onended = null;
-      player.onerror = null;
-      clearExpressionHighlights();
-    }
 
     function playOne(item){
       const choices = Array.isArray(item.sources) ? item.sources : [item.sources];
@@ -784,7 +696,7 @@ for (let i = 0; i < sessionStorage.length; i++) {
     function next(){
       if (myToken !== playToken) return;
       if (i >= items.length) {
-        stopPair();
+        clearExpressionHighlights();
         return;
       }
       playOne(items[i++]);
@@ -800,46 +712,43 @@ for (let i = 0; i < sessionStorage.length; i++) {
 
   // ----- Click handling -----
   document.addEventListener("click", ev => {
-    const el = ev.target.closest(".tile[data-group][data-index]");
+    const el = ev.target.closest("[data-group][data-index]");
     if (!el) return;
 
     const group = el.dataset.group;
     const index = Number(el.dataset.index);
 
-    if (group === "pronouns") {
-      const src = pronAud(index);
-
-      if (isExpressionPronoun(index)) {
-        lastPronSrc = null;
-        lastPronJoinable = false;
-        playRandomConversationPair();
-      } else {
-        lastPronSrc = src;
-        lastPronJoinable = true;
-        playSequence([src]);
-      }
+    if (group === "expressions") {
+      lastPronSrc = null;
+      lastPronJoinable = false;
+      clearPronounSelection();
+      playConversationSequence(buildConversationItems());
       return;
     }
 
-if (group === "objects") {
-  const srcObj = objAud(index);
+    if (group === "pronouns") {
+      const src = pronAud(index);
+      lastPronSrc = src;
+      lastPronJoinable = true;
+      selectPronounTile(el);
+      playSequence([src]);
+      return;
+    }
 
-  if (lastPronSrc && lastPronJoinable) {
-    // First click after a pronoun: play united phrase
-    playSequence([lastPronSrc, srcObj]);
+    if (group === "objects") {
+      const srcObj = objAud(index);
 
-    // Then clear the saved pronoun so the NEXT object click is simple
-    lastPronSrc = null;
-    lastPronJoinable = false;
-  } else {
-    // No active pronoun: play only the object audio
-    playSequence([srcObj]);
-  }
-  return;
-}
-  
+      if (lastPronSrc && lastPronJoinable) {
+        playSequence([lastPronSrc, srcObj]);
+        lastPronSrc = null;
+        lastPronJoinable = false;
+        clearPronounSelection();
+      } else {
+        playSequence([srcObj]);
+      }
+      return;
+    }
   });
-
 })();
 </script>
 
@@ -857,7 +766,6 @@ function closeContactOverlay(){
 
 <script>
 // ----- Bottom image-button actions -----
-// This is the working button-study idea, now connected to real conductor actions.
 (function(){
   const pbar = document.getElementById("pbar");
   if (!pbar) return;
@@ -874,21 +782,18 @@ function closeContactOverlay(){
   const actions = {
     continue(){
       const lessonNow = currentLesson();
-      const nextLesson = lessonNow + 1;
-
-      if (nextLesson > 20) {
+      if (lessonNow >= 20) {
         alert("You are already on the last lesson.");
         return;
       }
-
+      const nextLesson = lessonNow + 1;
       sessionStorage.setItem("lesson", String(nextLesson));
       sessionStorage.setItem("selectedLesson", String(nextLesson));
-
-      window.location.href = "conductor.html";
+      window.location.reload();
     },
 
     exit(){
-      goTo("../quit.html");
+      goTo("../index.html");
     },
 
     choosel(){
@@ -911,7 +816,7 @@ function closeContactOverlay(){
       if (history.length > 1) {
         history.back();
       } else {
-        goTo("index.html");
+        goTo("../index.html");
       }
     },
 
@@ -920,7 +825,6 @@ function closeContactOverlay(){
       const player = document.getElementById("player");
       if (!player) return;
 
-      // Shared group folder is one level above this conductor.
       player.src = `../group/lesson${lesson}/translation/a1.m4a`;
       player.currentTime = 0;
       player.play().catch(err => console.log("translation play failed:", err));
@@ -932,20 +836,13 @@ function closeContactOverlay(){
     if (!button) return;
 
     ev.preventDefault();
-    ev.stopPropagation(); // keeps button clicks from being treated like tile clicks
+    ev.stopPropagation();
 
     const action = actions[button.dataset.btn];
     if (action) action();
   });
 })();
 </script>
-
-<script>
-
-console.log("Lesson:", lesson);
-console.log("Tense:", tense);
-</script>
-
 
 <script>
 // ----- Lesson preparation overlay -----

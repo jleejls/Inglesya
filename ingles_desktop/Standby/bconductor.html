@@ -417,10 +417,9 @@ for (let i = 0; i < sessionStorage.length; i++) {
   <div class="buttonz" data-btn="continue" title="Advance to next page">
   <img src="../trigger/adelante.png" alt="Advance">
 </div>
-<div class="buttonz" data-btn="exit" title="Exit"
-     onclick="window.location.assign('../quit.html');">
-  <img src="../trigger/exit.png">
-</div>
+  <div class="buttonz" data-btn="exit" title="Exit to start page">
+    <img src="../trigger/exit.png" alt="Exit">
+  </div>
   <div class="buttonz" data-btn="choosel" title="Choose lesson">
     <img src="../trigger/choosel.png" alt="Choose lesson">
   </div>
@@ -679,82 +678,34 @@ for (let i = 0; i < sessionStorage.length; i++) {
   }
 
   // Conversation stepping: one click plays one two-part exchange, then stops.
-  // The exchanges are shuffled, so the student does not hear 1,2,3,4 every time.
-  // After every exchange in the active set has been used once, the shuffle bag refills
-  // and a new random round begins automatically.
-  //
-  // For the current Lesson 1 trial, this is set to false because you have
-  // Francisco statements + Rachel replies prepared.
-  // Later, after Rachel statements + Francisco replies are recorded, change this to true.
-  const USE_RACHEL_STATEMENT_ROUND = false;
+  // Click 1: Francisco statement 1 + Rachel reply 1
+  // Click 2: Francisco statement 2 + Rachel reply 2
+  // ...
+  // Click 16: Rachel statement 1 + Francisco reply 1
+  let conversationPairIndex = 0;
 
-  let conversationShuffleBag = [];
+  function playConversationPair(){
+    const allItems = buildConversationItems();
 
-  function buildConversationPairs(){
-    const pairs = [];
+    if (!allItems.length) return;
 
-    // Francisco asks / Rachel replies: 15 two-part exchanges.
-    for (let i = 1; i <= 15; i++) {
-      pairs.push([
-        { speakerId: FRANCISCO_EXPRESSION_ID, sources: conversationAud("francisco", "statement", i) },
-        { speakerId: RACHEL_EXPRESSION_ID, sources: conversationAud("rachel", "reply", i) }
-      ]);
+    let startIndex = conversationPairIndex * 2;
+
+    if (startIndex >= allItems.length) {
+      conversationPairIndex = 0;
+      startIndex = 0;
     }
 
-    // Rachel asks / Francisco replies: second 15 exchanges.
-    // Turn this on after those 30 additional audio files exist.
-    if (USE_RACHEL_STATEMENT_ROUND) {
-      for (let i = 1; i <= 15; i++) {
-        pairs.push([
-          { speakerId: RACHEL_EXPRESSION_ID, sources: conversationAud("rachel", "statement", i) },
-          { speakerId: FRANCISCO_EXPRESSION_ID, sources: conversationAud("francisco", "reply", i) }
-        ]);
-      }
-    }
+    const pairItems = allItems.slice(startIndex, startIndex + 2);
+    conversationPairIndex += 1;
 
-    return pairs;
+    playConversationSequence(pairItems);
   }
 
-  function shuffleArray(items){
-    for (let i = items.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      const temp = items[i];
-      items[i] = items[j];
-      items[j] = temp;
-    }
-    return items;
-  }
-
-  function refillConversationShuffleBag(){
-    conversationShuffleBag = shuffleArray(buildConversationPairs());
-  }
-
-  function playRandomConversationPair(){
-    if (!conversationShuffleBag.length) {
-      refillConversationShuffleBag();
-    }
-
-    if (!conversationShuffleBag.length) return;
-
-    const pairItems = conversationShuffleBag.shift();
-    playConversationPairOnly(pairItems);
-  }
-
-  function playConversationPairOnly(items){
+  function playConversationSequence(items){
     playToken++;
     const myToken = playToken;
     let i = 0;
-
-    try { player.pause(); } catch(e) {}
-    player.onended = null;
-    player.onerror = null;
-
-    function stopPair(){
-      if (myToken !== playToken) return;
-      player.onended = null;
-      player.onerror = null;
-      clearExpressionHighlights();
-    }
 
     function playOne(item){
       const choices = Array.isArray(item.sources) ? item.sources : [item.sources];
@@ -784,7 +735,7 @@ for (let i = 0; i < sessionStorage.length; i++) {
     function next(){
       if (myToken !== playToken) return;
       if (i >= items.length) {
-        stopPair();
+        clearExpressionHighlights();
         return;
       }
       playOne(items[i++]);
@@ -812,7 +763,7 @@ for (let i = 0; i < sessionStorage.length; i++) {
       if (isExpressionPronoun(index)) {
         lastPronSrc = null;
         lastPronJoinable = false;
-        playRandomConversationPair();
+        playConversationPair();
       } else {
         lastPronSrc = src;
         lastPronJoinable = true;
@@ -888,7 +839,7 @@ function closeContactOverlay(){
     },
 
     exit(){
-      goTo("../quit.html");
+      goTo("index.html");
     },
 
     choosel(){

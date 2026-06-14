@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Plática Phone Director</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<style>
+  *{ box-sizing:border-box; }
+
+  html, body{
+    margin:0;
+    width:100%;
+    min-height:100%;
+    background:#ffffff;
+    font-family:Arial, Helvetica, sans-serif;
+    color:#222;
+  }
+
+  body{ padding-bottom:62px; }
+  header, h3, .foot{ display:none; }
+
+  main{
+    width:100%;
+    max-width:420px;
+    margin:0 auto;
+    padding:5px 5px 2px 5px;
+  }
+
+  :root{
+    --frame-size:76px;
+    --gap:6px;
+  }
+
+  /* One continuous 21-frame grid.
+     11 pronouns + 10 objects = 7 rows of 3. */
+  .phone-grid{
+    display:grid;
+    grid-template-columns:repeat(3, var(--frame-size));
+    gap:var(--gap);
+    justify-content:center;
+  }
+
+  .tile{
+    position:relative;
+    width:var(--frame-size);
+    height:var(--frame-size);
+    border:1px solid #d7dbe3;
+    border-radius:9px;
+    background:#f9fafb;
+    overflow:hidden;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .tile img{
+    width:96%;
+    height:96%;
+    object-fit:contain;
+    display:block;
+  }
+
+  .object-tile img{ transform:scale(1.08); }
+
+  .tile.selected{
+    outline:4px solid #c00000;
+    outline-offset:-4px;
+  }
+
+  .label{
+    font:9px/1.15 monospace;
+    color:#777;
+    text-align:center;
+    padding:3px;
+    white-space:pre-line;
+  }
+
+  .zipbutton{
+    position:fixed;
+    left:50%;
+    right:auto;
+    bottom:0;
+    transform:translateX(-50%);
+    width:100%;
+    max-width:420px;
+    z-index:80;
+    display:grid;
+    grid-template-columns:repeat(8, 1fr);
+    gap:4px;
+    background:#f0f0f0;
+    border-top:1px solid #ddd;
+    padding:6px;
+  }
+
+  .buttonz{
+    min-height:38px;
+    border:2px solid #4CAF50;
+    border-radius:9px;
+    background:#d05000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+  }
+
+  .buttonz img{
+    max-width:100%;
+    max-height:34px;
+    display:block;
+    pointer-events:none;
+  }
+
+  .contact-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.45);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:200;
+    padding:20px;
+  }
+
+  .contact-overlay[hidden]{ display:none; }
+
+  .contact-box{
+    background:white;
+    color:black;
+    padding:22px;
+    border-radius:12px;
+    max-width:430px;
+    text-align:center;
+    font-family:Arial, sans-serif;
+    box-shadow:0 8px 25px rgba(0,0,0,.25);
+  }
+
+  .contact-box a,
+  .contact-box button{
+    display:inline-block;
+    margin:6px;
+    padding:9px 13px;
+    border-radius:8px;
+    border:1px solid #777;
+    background:#f4f4f4;
+    color:#111;
+    text-decoration:none;
+    font:14px Arial, sans-serif;
+    cursor:pointer;
+  }
+
+  .contact-address{
+    font-weight:bold;
+    margin:10px 0 14px;
+  }
+
+  @media (max-width:380px){
+    :root{ --frame-size:68px; --gap:5px; }
+    main{ padding:4px 4px 2px 4px; }
+    body{ padding-bottom:58px; }
+    .buttonz{ min-height:34px; }
+    .buttonz img{ max-height:31px; }
+  }
+
+  @media (max-width:330px){
+    :root{ --frame-size:62px; --gap:4px; }
+    body{ padding-bottom:54px; }
+  }
+</style>
+</head>
+
+<body>
+<header id="banner">Plática Phone Director</header>
+
+<main>
+  <section aria-label="Plática phone lesson frames">
+    <h3>Lesson frames</h3>
+    <div id="phoneFrames" class="phone-grid"></div>
+  </section>
+</main>
+
+<div id="pbar" class="zipbutton" aria-label="Program buttons">
+  <div class="buttonz" data-btn="continue" title="Next lesson"><img data-icon="adelante" alt="Adelante"></div>
+  <div class="buttonz" data-btn="exit" title="Exit to start page"><img data-icon="exit" alt="Exit"></div>
+  <div class="buttonz" data-btn="choosel" title="Choose lesson"><img data-icon="choosel" alt="Choose lesson"></div>
+  <div class="buttonz" data-btn="help" title="Help / guidelines"><img data-icon="help" alt="Help"></div>
+  <div class="buttonz" data-btn="email" title="Contact"><img data-icon="email" alt="Email"></div>
+  <div class="buttonz" data-btn="donate" title="Donate"><img data-icon="donate" alt="Donate"></div>
+  <div class="buttonz" data-btn="goback" title="Go back"><img data-icon="goback" alt="Back"></div>
+  <div class="buttonz" data-btn="translate" title="Translation"><img data-icon="translate" alt="Translate"></div>
+</div>
+
+<div id="contactOverlay" class="contact-overlay" hidden>
+  <div class="contact-box">
+    <h2>Contact Jimmy Lucky</h2>
+    <p>To contact Jimmy Lucky, please leave this lesson page and open your own email program.</p>
+    <p>You may write in English or Spanish.</p>
+    <p>Send your message to:</p>
+    <p class="contact-address">spanishsoundbites@gmail.com</p>
+    <a href="https://mail.google.com/mail/?view=cm&fs=1&to=spanishsoundbites@gmail.com" target="_blank" rel="noopener">Open Gmail</a>
+    <button type="button" onclick="closeContactOverlay()">Go Back</button>
+  </div>
+</div>
+
+<audio id="player" preload="auto"></audio>
+
+<script>
+(function(){
+  function readLesson(){
+    const n = Number(
+      sessionStorage.getItem("selectedLesson") ||
+      sessionStorage.getItem("lesson") ||
+      sessionStorage.getItem("currentLesson") ||
+      "1"
+    );
+    return Number.isFinite(n) && n > 0 ? n : 1;
+  }
+
+  const lesson = readLesson();
+  sessionStorage.setItem("lesson", String(lesson));
+  sessionStorage.setItem("selectedLesson", String(lesson));
+  document.getElementById("banner").textContent = `Plática Phone — Lesson ${lesson}`;
+
+  let combinedSlots = [];
+  try { combinedSlots = JSON.parse(sessionStorage.getItem("combinedPhoneSlots") || "[]"); } catch(e) { combinedSlots = []; }
+
+  if (!combinedSlots.length) {
+    let pronounSlots = [];
+    let objectSlots = [];
+
+    try { pronounSlots = JSON.parse(sessionStorage.getItem("pronounSlots") || "[]"); } catch(e) { pronounSlots = []; }
+    try { objectSlots = JSON.parse(sessionStorage.getItem("objectSlots") || "[]"); } catch(e) { objectSlots = []; }
+
+    if (!pronounSlots.length) {
+      for (let id = 11; id <= 21; id++) pronounSlots.push({ id:id, kind:"main" });
+    }
+
+    if (!objectSlots.length) {
+      for (let id = 1; id <= 10; id++) objectSlots.push({ id:id });
+    }
+
+    pronounSlots.slice(0, 11).forEach(slot => {
+      combinedSlots.push({ group:"pronouns", id:Number(slot.id), kind:slot.kind || "main" });
+    });
+
+    objectSlots.slice(0, 10).forEach(slot => {
+      combinedSlots.push({ group:"objects", id:Number(slot.id) });
+    });
+  }
+
+  // Safety limit: phone screen should show exactly 21 lesson frames.
+  combinedSlots = combinedSlots.slice(0, 21);
+
+  let exprIds = [];
+  try { exprIds = JSON.parse(sessionStorage.getItem("expressionPronounIds") || "[]"); } catch(e) { exprIds = []; }
+
+  // This phone folder sits one level below the main path.
+  // Main-path data is reached with ../
+  const mainRoot = "../";
+  const basePath = `${mainRoot}group/lesson${lesson}`;
+
+  function imageCandidates(id){
+    return [
+      `${basePath}/image/p${id}.png`,
+      `${basePath}/images/p${id}.png`,
+      `${basePath}/image/${id}.png`,
+      `${basePath}/images/${id}.png`
+    ];
+  }
+
+  function audioCandidates(id){
+    return [
+      `${basePath}/sound/${id}.m4a`,
+      `${basePath}/sounds/${id}.m4a`,
+      `${basePath}/audio/${id}.m4a`,
+      `${basePath}/audios/${id}.m4a`,
+      `${basePath}/sound/a${id}.m4a`
+    ];
+  }
+
+  function makeTile(srcList, fallbackLabel, extraClass){
+    const d = document.createElement("div");
+    d.className = `tile ${extraClass || ""}`.trim();
+
+    const img = document.createElement("img");
+    img.alt = fallbackLabel;
+
+    let srcIndex = 0;
+    img.onerror = function(){
+      srcIndex += 1;
+      if (srcIndex < srcList.length) {
+        img.src = srcList[srcIndex];
+      } else {
+        d.innerHTML = `<div class="label">missing:\n${fallbackLabel}</div>`;
+      }
+    };
+
+    img.src = srcList[srcIndex];
+    d.appendChild(img);
+    return d;
+  }
+
+  function loadButtonIcons(){
+    document.querySelectorAll("img[data-icon]").forEach(img => {
+      const name = img.dataset.icon;
+      const choices = [
+        `${mainRoot}trigger/${name}.png`,
+        `trigger/${name}.png`,
+        `./trigger/${name}.png`
+      ];
+
+      let i = 0;
+      img.onerror = function(){
+        i += 1;
+        if (i < choices.length) img.src = choices[i];
+      };
+      img.src = choices[i];
+    });
+  }
+
+  loadButtonIcons();
+
+  const mount = document.getElementById("phoneFrames");
+  combinedSlots.forEach(slot => {
+    const id = Number(slot.id);
+    const group = slot.group === "objects" ? "objects" : "pronouns";
+    const t = makeTile(
+      imageCandidates(id),
+      `p${id}.png`,
+      group === "objects" ? "object-tile" : "pronoun-tile"
+    );
+
+    t.dataset.group = group;
+    t.dataset.index = String(id);
+    t.dataset.kind = slot.kind || "main";
+    mount.appendChild(t);
+  });
+
+  const player = document.getElementById("player");
+  let lastPronSrc = null;
+  let lastPronJoinable = false;
+  let selectedPronTile = null;
+  let playToken = 0;
+
+  function isExpressionPronoun(id){
+    return exprIds.includes(id);
+  }
+
+  function clearPronounSelection(){
+    if (selectedPronTile) selectedPronTile.classList.remove("selected");
+    selectedPronTile = null;
+  }
+
+  function selectPronounTile(tile){
+    clearPronounSelection();
+    selectedPronTile = tile;
+    selectedPronTile.classList.add("selected");
+  }
+
+  function playSequence(sourceGroups){
+    playToken += 1;
+    const myToken = playToken;
+    let groupIndex = 0;
+
+    function playOneGroup(srcList){
+      let choiceIndex = 0;
+
+      function tryChoice(){
+        if (myToken !== playToken) return;
+
+        if (choiceIndex >= srcList.length) {
+          nextGroup();
+          return;
+        }
+
+        player.onerror = tryChoice;
+        player.src = srcList[choiceIndex++];
+        player.currentTime = 0;
+        player.play().catch(err => console.log("play failed:", err));
+      }
+
+      tryChoice();
+    }
+
+    function nextGroup(){
+      if (myToken !== playToken) return;
+      if (groupIndex >= sourceGroups.length) return;
+      playOneGroup(sourceGroups[groupIndex++]);
+    }
+
+    player.onended = function(){
+      if (myToken !== playToken) return;
+      nextGroup();
+    };
+
+    nextGroup();
+  }
+
+  document.addEventListener("click", function(ev){
+    const el = ev.target.closest(".tile[data-group][data-index]");
+    if (!el) return;
+
+    const group = el.dataset.group;
+    const id = Number(el.dataset.index);
+
+    if (group === "pronouns") {
+      const src = audioCandidates(id);
+
+      if (isExpressionPronoun(id)) {
+        lastPronSrc = null;
+        lastPronJoinable = false;
+        clearPronounSelection();
+        playSequence([src]);
+      } else {
+        lastPronSrc = src;
+        lastPronJoinable = true;
+        selectPronounTile(el);
+        playSequence([src]);
+      }
+      return;
+    }
+
+    if (group === "objects") {
+      const srcObj = audioCandidates(id);
+
+      if (lastPronSrc && lastPronJoinable) {
+        playSequence([lastPronSrc, srcObj]);
+        lastPronSrc = null;
+        lastPronJoinable = false;
+        clearPronounSelection();
+      } else {
+        playSequence([srcObj]);
+      }
+    }
+  });
+})();
+</script>
+
+<script>
+function openContactOverlay(){
+  const overlay = document.getElementById("contactOverlay");
+  if (overlay) overlay.hidden = false;
+}
+
+function closeContactOverlay(){
+  const overlay = document.getElementById("contactOverlay");
+  if (overlay) overlay.hidden = true;
+}
+</script>
+
+<script>
+(function(){
+  const pbar = document.getElementById("pbar");
+  if (!pbar) return;
+
+  function mainGo(page){
+    // Main menu pages are one level back from the phone folder.
+    window.location.href = `../${page}`;
+  }
+
+  function currentLesson(){
+    const n = Number(sessionStorage.getItem("lesson") || "1");
+    return Number.isFinite(n) && n > 0 ? n : 1;
+  }
+
+  const actions = {
+    continue(){
+      const lessonNow = currentLesson();
+      if (lessonNow >= 20) {
+        alert("You are already on the last lesson.");
+        return;
+      }
+      const nextLesson = lessonNow + 1;
+      sessionStorage.setItem("lesson", String(nextLesson));
+      sessionStorage.setItem("selectedLesson", String(nextLesson));
+      window.location.reload();
+    },
+
+    exit(){ mainGo("index.html"); },
+
+    // This returns to the main-path lesson selector.
+    choosel(){ mainGo("lessonselect.html"); },
+
+    help(){ mainGo("guidelines.html"); },
+    email(){ openContactOverlay(); },
+    donate(){ mainGo("donate.html"); },
+
+    goback(){
+      if (history.length > 1) history.back();
+      else mainGo("index.html");
+    },
+
+    translate(){
+      const lesson = currentLesson();
+      const player = document.getElementById("player");
+      if (!player) return;
+
+      const choices = [
+        `../group/lesson${lesson}/translation/19-english.m4a`,
+        `../group/lesson${lesson}/translation/a1.m4a`,
+        `../group/lesson${lesson}/translation/1.m4a`
+      ];
+
+      let i = 0;
+      player.onerror = function(){
+        i += 1;
+        if (i < choices.length) {
+          player.src = choices[i];
+          player.currentTime = 0;
+          player.play().catch(err => console.log("translation play failed:", err));
+        }
+      };
+
+      player.src = choices[i];
+      player.currentTime = 0;
+      player.play().catch(err => console.log("translation play failed:", err));
+    }
+  };
+
+  pbar.addEventListener("click", function(ev){
+    const button = ev.target.closest(".buttonz[data-btn]");
+    if (!button) return;
+
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    const action = actions[button.dataset.btn];
+    if (action) action();
+  });
+})();
+</script>
+</body>
+</html>

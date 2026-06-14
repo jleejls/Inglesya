@@ -160,13 +160,6 @@
     height:75%;
 }
 
-#pronouns .tile[data-index="8"].speaking,
-#pronouns .tile[data-index="9"].speaking {
-    outline:4px solid #c00000;
-    outline-offset:3px;
-    box-shadow:0 0 0 5px rgba(192,0,0,.16), 0 2px 8px rgba(0,0,0,.18);
-}
-
   /* Bottom image buttons copied from the button-study essence */
   .zipbutton{
     display:flex;
@@ -417,10 +410,9 @@ for (let i = 0; i < sessionStorage.length; i++) {
   <div class="buttonz" data-btn="continue" title="Advance to next page">
   <img src="../trigger/adelante.png" alt="Advance">
 </div>
-<div class="buttonz" data-btn="exit" title="Exit"
-     onclick="window.location.assign('../quit.html');">
-  <img src="../trigger/exit.png">
-</div>
+  <div class="buttonz" data-btn="exit" title="Exit to start page">
+    <img src="../trigger/exit.png" alt="Exit">
+  </div>
   <div class="buttonz" data-btn="choosel" title="Choose lesson">
     <img src="../trigger/choosel.png" alt="Choose lesson">
   </div>
@@ -515,43 +507,6 @@ for (let i = 0; i < sessionStorage.length; i++) {
     `${basePath}/sound/${i}.m4a`
   ];
 
-
-  // ----- Conversation-circle audio paths -----
-  // Francisco uses expression pronoun P8, Rachel uses expression pronoun P9.
-  // These paths are read from the lesson folder; conductor does not create layout values.
-  const FRANCISCO_EXPRESSION_ID = exprIds[0] || 8;
-  const RACHEL_EXPRESSION_ID = exprIds[1] || 9;
-
-  function conversationAud(speaker, role, number){
-    const shortSpeaker = speaker === "francisco" ? "f" : "r";
-    const shortRole = role === "statement" ? "s" : "reply";
-
-    return [
-      `${basePath}/conversation/${speaker}_${role}_${number}.m4a`,
-      `${basePath}/conversation/${speaker}-${role}-${number}.m4a`,
-      `${basePath}/conversation/${shortSpeaker}_${shortRole}_${number}.m4a`,
-      `${basePath}/conversation/${shortSpeaker}${shortRole}${number}.m4a`,
-      `${basePath}/conversation/${speaker}${number}.m4a`,
-      `${basePath}/conversation/${shortSpeaker}${number}.m4a`
-    ];
-  }
-
-  function buildConversationItems(){
-    const items = [];
-
-    for (let i = 1; i <= 15; i++) {
-      items.push({ speakerId: FRANCISCO_EXPRESSION_ID, sources: conversationAud("francisco", "statement", i) });
-      items.push({ speakerId: RACHEL_EXPRESSION_ID, sources: conversationAud("rachel", "reply", i) });
-    }
-
-    for (let i = 1; i <= 15; i++) {
-      items.push({ speakerId: RACHEL_EXPRESSION_ID, sources: conversationAud("rachel", "statement", i) });
-      items.push({ speakerId: FRANCISCO_EXPRESSION_ID, sources: conversationAud("francisco", "reply", i) });
-    }
-
-    return items;
-  }
-
   // ----- Tile builder -----
   function makeTile(srcList, fallbackLabel){
     const sources = Array.isArray(srcList) ? srcList : [srcList];
@@ -578,15 +533,11 @@ for (let i = 0; i < sessionStorage.length; i++) {
 
   // ----- Build pronoun tiles (3×3 grid, ids 1..9) -----
   const pronMount = document.getElementById("pronouns");
-  const expressionTilesByIndex = {};
   pronounSlots.forEach(slot => {
     const t = makeTile(pronImg(slot.id), `p${slot.id}.png`);
     t.dataset.group = "pronouns";
     t.dataset.index = slot.id;
     t.dataset.kind  = slot.kind || "main"; // "main" or "expression"
-    if (isExpressionPronoun(slot.id)) {
-      expressionTilesByIndex[slot.id] = t;
-    }
     pronMount.appendChild(t);
   });
 
@@ -625,7 +576,6 @@ for (let i = 0; i < sessionStorage.length; i++) {
   }
 
   function playSequence(sources){
-    clearExpressionHighlights();
     playToken++;
     const myToken = playToken;
     let i = 0;
@@ -667,137 +617,6 @@ for (let i = 0; i < sessionStorage.length; i++) {
     next();
   }
 
-
-  function clearExpressionHighlights(){
-    Object.values(expressionTilesByIndex).forEach(tile => tile.classList.remove("speaking"));
-  }
-
-  function markExpressionSpeaker(speakerId){
-    clearExpressionHighlights();
-    const tile = expressionTilesByIndex[speakerId];
-    if (tile) tile.classList.add("speaking");
-  }
-
-  // Conversation stepping: one click plays one two-part exchange, then stops.
-  // The exchanges are shuffled, so the student does not hear 1,2,3,4 every time.
-  // After every exchange in the active set has been used once, the shuffle bag refills
-  // and a new random round begins automatically.
-  //
-  // For the current Lesson 1 trial, this is set to false because you have
-  // Francisco statements + Rachel replies prepared.
-  // Later, after Rachel statements + Francisco replies are recorded, change this to true.
-  const USE_RACHEL_STATEMENT_ROUND = false;
-
-  let conversationShuffleBag = [];
-
-  function buildConversationPairs(){
-    const pairs = [];
-
-    // Francisco asks / Rachel replies: 15 two-part exchanges.
-    for (let i = 1; i <= 15; i++) {
-      pairs.push([
-        { speakerId: FRANCISCO_EXPRESSION_ID, sources: conversationAud("francisco", "statement", i) },
-        { speakerId: RACHEL_EXPRESSION_ID, sources: conversationAud("rachel", "reply", i) }
-      ]);
-    }
-
-    // Rachel asks / Francisco replies: second 15 exchanges.
-    // Turn this on after those 30 additional audio files exist.
-    if (USE_RACHEL_STATEMENT_ROUND) {
-      for (let i = 1; i <= 15; i++) {
-        pairs.push([
-          { speakerId: RACHEL_EXPRESSION_ID, sources: conversationAud("rachel", "statement", i) },
-          { speakerId: FRANCISCO_EXPRESSION_ID, sources: conversationAud("francisco", "reply", i) }
-        ]);
-      }
-    }
-
-    return pairs;
-  }
-
-  function shuffleArray(items){
-    for (let i = items.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      const temp = items[i];
-      items[i] = items[j];
-      items[j] = temp;
-    }
-    return items;
-  }
-
-  function refillConversationShuffleBag(){
-    conversationShuffleBag = shuffleArray(buildConversationPairs());
-  }
-
-  function playRandomConversationPair(){
-    if (!conversationShuffleBag.length) {
-      refillConversationShuffleBag();
-    }
-
-    if (!conversationShuffleBag.length) return;
-
-    const pairItems = conversationShuffleBag.shift();
-    playConversationPairOnly(pairItems);
-  }
-
-  function playConversationPairOnly(items){
-    playToken++;
-    const myToken = playToken;
-    let i = 0;
-
-    try { player.pause(); } catch(e) {}
-    player.onended = null;
-    player.onerror = null;
-
-    function stopPair(){
-      if (myToken !== playToken) return;
-      player.onended = null;
-      player.onerror = null;
-      clearExpressionHighlights();
-    }
-
-    function playOne(item){
-      const choices = Array.isArray(item.sources) ? item.sources : [item.sources];
-      let choiceIndex = 0;
-      markExpressionSpeaker(item.speakerId);
-
-      function tryChoice(){
-        if (myToken !== playToken) return;
-        if (choiceIndex >= choices.length) {
-          next();
-          return;
-        }
-
-        const src = choices[choiceIndex++];
-        player.onerror = tryChoice;
-        player.src = src;
-        player.currentTime = 0;
-        player.play().catch(err => {
-          console.log("conversation play failed:", err);
-          tryChoice();
-        });
-      }
-
-      tryChoice();
-    }
-
-    function next(){
-      if (myToken !== playToken) return;
-      if (i >= items.length) {
-        stopPair();
-        return;
-      }
-      playOne(items[i++]);
-    }
-
-    player.onended = () => {
-      if (myToken !== playToken) return;
-      next();
-    };
-
-    next();
-  }
-
   // ----- Click handling -----
   document.addEventListener("click", ev => {
     const el = ev.target.closest(".tile[data-group][data-index]");
@@ -812,7 +631,7 @@ for (let i = 0; i < sessionStorage.length; i++) {
       if (isExpressionPronoun(index)) {
         lastPronSrc = null;
         lastPronJoinable = false;
-        playRandomConversationPair();
+        playSequence([src]);
       } else {
         lastPronSrc = src;
         lastPronJoinable = true;
@@ -888,7 +707,7 @@ function closeContactOverlay(){
     },
 
     exit(){
-      goTo("../quit.html");
+      goTo("index.html");
     },
 
     choosel(){
