@@ -48,6 +48,26 @@
     margin-bottom:var(--gap);
   }
 
+  .lesson-number-badge{
+    position:fixed;
+    top:7px;
+    left:7px;
+    z-index:70;
+    width:24px;
+    height:24px;
+    border:1px solid #d7dbe3;
+    border-radius:50%;
+    background:rgba(255,255,255,.88);
+    color:#333;
+    font:700 15px/24px Arial, Helvetica, sans-serif;
+    text-align:center;
+    pointer-events:none;
+  }
+
+  .phone-layout-row.object-start-row{
+    margin-top:8px;
+  }
+
   .tile{
     position:relative;
     width:var(--frame-size);
@@ -318,6 +338,8 @@ for (let i = 0; i < sessionStorage.length; i++) {
 
 <body>
 
+<div id="lessonNumberBadge" class="lesson-number-badge" aria-label="Lesson number"></div>
+
 <div id="prepOverlay" class="prep-overlay" role="status" aria-live="polite" aria-label="Lesson preparation message">
   <div class="prep-card">
     <p class="prep-title">InglesYa</p>
@@ -479,6 +501,7 @@ for (let i = 0; i < sessionStorage.length; i++) {
   // group is one folder above ingles_phone, so we use ../group
   const basePath = `../group/lesson${lesson}`;
   document.getElementById("banner").textContent = `Phone — Lesson ${lesson}`;
+  document.getElementById("lessonNumberBadge").textContent = String(lesson);
 
   // ----- Paths -----
   // Supports both folder styles:
@@ -624,12 +647,20 @@ for (let i = 0; i < sessionStorage.length; i++) {
 
   // ----- Build exactly the rows provided by structure.html -----
   const mount = document.getElementById("phoneLayoutMount");
+  let previousRowGroup = null;
+
   layoutRows.forEach(rowSpec => {
     if (!rowSpec || !Array.isArray(rowSpec.ids)) return;
 
+    const rowGroup = rowSpec.group || "unknown";
     const row = document.createElement("div");
     row.className = "phone-layout-row";
-    row.dataset.group = rowSpec.group || "unknown";
+    row.dataset.group = rowGroup;
+
+    // Add a small visual breathing space where the object rows begin.
+    if (rowGroup === "objects" && previousRowGroup !== "objects") {
+      row.classList.add("object-start-row");
+    }
 
     rowSpec.ids.forEach(id => {
       const tile = buildOneTile(rowSpec.group, id);
@@ -637,6 +668,7 @@ for (let i = 0; i < sessionStorage.length; i++) {
     });
 
     mount.appendChild(row);
+    previousRowGroup = rowGroup;
   });
 
   // Debug badge
