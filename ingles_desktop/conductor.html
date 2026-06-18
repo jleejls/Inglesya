@@ -28,21 +28,35 @@
     color:#222;
   }
   header{
-    padding:10px 14px;
-    background:#6b1111;
-    color:#fff;
-    font-weight:600;
-    font-size:15px;
+    display:none;
   }
   main{
     max-width:1140px;
     margin:0 auto;
-    padding:12px 12px 64px;
+    padding:46px 12px 64px;
   }
 
   h3{
-    margin:8px 4px;
-    font-size:15px;
+    display:none;
+  }
+
+  .lesson-number-badge{
+    position:fixed;
+    top:10px;
+    right:12px;
+    z-index:70;
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    background:#fffbea;
+    border:2px solid #8a6a25;
+    color:#3b3020;
+    box-shadow:0 2px 8px rgba(0,0,0,.18);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font:bold 18px Arial, Helvetica, sans-serif;
+    pointer-events:none;
   }
 
   /* Three columns: objects left, pronouns center, objects right */
@@ -256,13 +270,7 @@
 
   /* Small debug badge */
   .foot{
-    position:fixed;
-    left:8px;
-    bottom:10vh;
-    background:#ffe8a3;
-    border-radius:8px;
-    padding:4px 6px;
-    font:10px/1.2 monospace;
+    display:none;
   }
 
   @media (max-width:600px){
@@ -270,82 +278,6 @@
       padding-bottom:80px;
     }
   }
-
-  /* Lesson preparation overlay */
-  .prep-overlay{
-    position:fixed;
-    inset:0;
-    z-index:9999;
-    background:linear-gradient(180deg, #fff7df 0%, #f3fbff 100%);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:22px;
-    transition:opacity .35s ease, visibility .35s ease;
-  }
-
-  .prep-overlay.ready{
-    opacity:0;
-    visibility:hidden;
-    pointer-events:none;
-  }
-
-  .prep-card{
-    width:min(88vw, 430px);
-    background:rgba(255,255,255,.94);
-    border:1px solid #d7c88a;
-    border-radius:18px;
-    box-shadow:0 8px 26px rgba(0,0,0,.18);
-    text-align:center;
-    padding:24px 18px;
-    font-family:Arial, Helvetica, sans-serif;
-    color:#3b3020;
-  }
-
-  .prep-title{
-    font-size:22px;
-    font-weight:700;
-    margin:0 0 10px;
-  }
-
-  .prep-message{
-    font-size:17px;
-    line-height:1.35;
-    margin:0 0 14px;
-  }
-
-  .prep-credit{
-    font-size:13px;
-    line-height:1.35;
-    color:#665536;
-    margin:0;
-  }
-
-  .prep-dots{
-    display:inline-block;
-    min-width:22px;
-    text-align:left;
-  }
-
-  @media (max-width:380px){
-    .prep-card{
-      padding:20px 14px;
-      border-radius:16px;
-    }
-
-    .prep-title{
-      font-size:20px;
-    }
-
-    .prep-message{
-      font-size:16px;
-    }
-
-    .prep-credit{
-      font-size:12px;
-    }
-  }
-
 </style>
 <script>
 // ----- Conductor startup -----
@@ -381,13 +313,7 @@ for (let i = 0; i < sessionStorage.length; i++) {
 </head>
 <body>
 
-<div id="prepOverlay" class="prep-overlay" role="status" aria-live="polite" aria-label="Lesson preparation message">
-  <div class="prep-card">
-    <p class="prep-title">InglesYa</p>
-    <p class="prep-message">Your lesson is being prepared<span class="prep-dots">...</span></p>
-    <p class="prep-credit">Created by Jimmy Lucky</p>
-  </div>
-</div>
+<div id="lessonBadge" class="lesson-number-badge" aria-label="Lesson number"></div>
 
 <header id="banner">Director</header>
 
@@ -490,7 +416,9 @@ for (let i = 0; i < sessionStorage.length; i++) {
   sessionStorage.setItem("selectedLesson", String(lesson));
 
   const basePath = `../group/lesson${lesson}`;
-  document.getElementById("banner").textContent = `Director — ${basePath}`;
+  document.getElementById("banner").textContent = "";
+  const lessonBadge = document.getElementById("lessonBadge");
+  if (lessonBadge) lessonBadge.textContent = String(lesson);
 
   // ----- Paths -----
   // This conductor supports both folder styles:
@@ -605,12 +533,6 @@ for (let i = 0; i < sessionStorage.length; i++) {
       rightCol.appendChild(t);
     }
   });
-
-  // Debug badge so YOU can see tense/lesson
-  const foot = document.createElement("div");
-  foot.className = "foot";
-  foot.textContent = `tense=${tense}  lesson=${lesson}  P=${pronounSlots.length}  O=${objectSlots.length}`;
-  document.body.appendChild(foot);
 
   // ----- Audio logic: no overlaps, serial uniting -----
   const player = document.getElementById("player");
@@ -946,40 +868,6 @@ console.log("Lesson:", lesson);
 console.log("Tense:", tense);
 </script>
 
-
-<script>
-// ----- Lesson preparation overlay -----
-// Keeps the preparation screen visible for at least two seconds,
-// and also waits for the page load event so rough loading moments are hidden.
-(function(){
-  const startedAt = Date.now();
-  const minimumDelay = 2000;
-
-  function hidePreparationOverlay(){
-    const overlay = document.getElementById("prepOverlay");
-    if (!overlay) return;
-
-    const elapsed = Date.now() - startedAt;
-    const remaining = Math.max(0, minimumDelay - elapsed);
-
-    window.setTimeout(function(){
-      overlay.classList.add("ready");
-
-      window.setTimeout(function(){
-        if (overlay && overlay.parentNode) {
-          overlay.parentNode.removeChild(overlay);
-        }
-      }, 450);
-    }, remaining);
-  }
-
-  if (document.readyState === "complete") {
-    hidePreparationOverlay();
-  } else {
-    window.addEventListener("load", hidePreparationOverlay, { once:true });
-  }
-})();
-</script>
 
 </body>
 </html>
