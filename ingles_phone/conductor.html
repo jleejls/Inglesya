@@ -329,7 +329,9 @@
 // ----- Phone Conductor startup -----
 // Accept the lesson number no matter which earlier page stored it.
 (function () {
+  const urlLesson = new URLSearchParams(window.location.search).get("lesson");
   const storedLesson =
+    urlLesson ||
     sessionStorage.getItem("selectedLesson") ||
     sessionStorage.getItem("lesson") ||
     sessionStorage.getItem("currentLesson") ||
@@ -1005,7 +1007,8 @@ function closeContactOverlay(){
       const nextLesson = lessonNow + 1;
       sessionStorage.setItem("lesson", String(nextLesson));
       sessionStorage.setItem("selectedLesson", String(nextLesson));
-      window.location.reload();
+      sessionStorage.setItem("currentLesson", String(nextLesson));
+      window.location.href = "conductor.html?lesson=" + nextLesson + "&prep=" + Date.now();
     },
 
     exit(){
@@ -1065,27 +1068,42 @@ function closeContactOverlay(){
 <script>
 // ----- Conductor preparation pause -----
 // The lesson select page only chooses the lesson. The visible pause/credits overlay
-// now belongs here, where the lesson itself is being prepared.
+// belongs here in conductor.html, where the lesson itself is being prepared.
 (function(){
-  const minimumPauseMs = 2000;
-  const startedAt = Date.now();
+  const MINIMUM_PREP_DELAY_MS = 2000;
+  let prepTimer = null;
 
-  function closePrepOverlay(){
-    const overlay = document.getElementById("prepOverlay");
-    if (overlay) overlay.classList.add("done");
+  function overlay(){
+    return document.getElementById("prepOverlay");
   }
 
-  function finishAfterMinimumPause(){
-    const elapsed = Date.now() - startedAt;
-    const remaining = Math.max(0, minimumPauseMs - elapsed);
-    window.setTimeout(closePrepOverlay, remaining);
+  function showPrepOverlay(){
+    const box = overlay();
+    if (box) box.classList.remove("done");
+  }
+
+  function closePrepOverlay(){
+    const box = overlay();
+    if (box) box.classList.add("done");
+  }
+
+  function runPrepPause(){
+    showPrepOverlay();
+    window.clearTimeout(prepTimer);
+    prepTimer = window.setTimeout(closePrepOverlay, MINIMUM_PREP_DELAY_MS);
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", finishAfterMinimumPause, { once:true });
+    document.addEventListener("DOMContentLoaded", runPrepPause, { once:true });
   } else {
-    finishAfterMinimumPause();
+    runPrepPause();
   }
+
+  // If the browser restores this page from its back/forward memory,
+  // make the overlay behavior reliable again instead of leaving an old hidden state.
+  window.addEventListener("pageshow", function(ev){
+    if (ev.persisted) runPrepPause();
+  });
 })();
 </script>
 
