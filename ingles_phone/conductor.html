@@ -239,6 +239,60 @@
   }
 
 
+  /* Long-hold image magnifier for phone frames. */
+  .image-magnifier-overlay{
+    position:fixed;
+    inset:0;
+    z-index:5000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,.62);
+    padding:2vw;
+  }
+
+  .image-magnifier-overlay[hidden]{ display:none; }
+
+  .image-magnifier-frame{
+    position:relative;
+    width:min(96vw, 96vh, 430px);
+    height:min(96vw, 96vh, 430px);
+    border:2px solid #ffffff;
+    border-radius:14px;
+    background:#ffffff;
+    box-shadow:0 10px 32px rgba(0,0,0,.38);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+  }
+
+  .image-magnifier-frame img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    display:block;
+  }
+
+  .image-magnifier-close{
+    position:absolute;
+    top:7px;
+    right:7px;
+    width:30px;
+    height:30px;
+    border:2px solid #ffffff;
+    border-radius:50%;
+    background:#c00000;
+    color:#ffffff;
+    font:700 20px/24px Arial, Helvetica, sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    box-shadow:0 2px 8px rgba(0,0,0,.25);
+  }
+
+
   /* Lesson preparation pause overlay lives in conductor.html only. */
   .prep-overlay{
     position:fixed;
@@ -329,9 +383,7 @@
 // ----- Phone Conductor startup -----
 // Accept the lesson number no matter which earlier page stored it.
 (function () {
-  const urlLesson = new URLSearchParams(window.location.search).get("lesson");
   const storedLesson =
-    urlLesson ||
     sessionStorage.getItem("selectedLesson") ||
     sessionStorage.getItem("lesson") ||
     sessionStorage.getItem("currentLesson") ||
@@ -920,6 +972,118 @@ for (let i = 0; i < sessionStorage.length; i++) {
     next();
   }
 
+  // ----- Long-hold magnifier -----
+  // A brief tap still plays audio. A long hold opens a large square image view
+  // and suppresses the tap/click audio that mobile browsers normally fire after release.
+  let longHoldTimer = null;
+  let longHoldTriggered = false;
+  let suppressNextTileClick = false;
+  const LONG_HOLD_MS = 560;
+
+  function closeImageMagnifier(){
+    const overlay = document.getElementById("imageMagnifierOverlay");
+    if (overlay) overlay.hidden = true;
+  }
+
+  function ensureImageMagnifier(){
+    let overlay = document.getElementById("imageMagnifierOverlay");
+    if (overlay) return overlay;
+
+    overlay = document.createElement("div");
+    overlay.id = "imageMagnifierOverlay";
+    overlay.className = "image-magnifier-overlay";
+    overlay.hidden = true;
+    overlay.setAttribute("aria-label", "Magnified image");
+
+    const frame = document.createElement("div");
+    frame.className = "image-magnifier-frame";
+
+    const img = document.createElement("img");
+    img.id = "imageMagnifierImg";
+    img.alt = "Magnified lesson image";
+
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "image-magnifier-close";
+    close.setAttribute("aria-label", "Close magnified image");
+    close.textContent = "×";
+
+    close.addEventListener("click", ev => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      closeImageMagnifier();
+    });
+
+    overlay.addEventListener("click", ev => {
+      if (ev.target === overlay) closeImageMagnifier();
+    });
+
+    frame.appendChild(img);
+    frame.appendChild(close);
+    overlay.appendChild(frame);
+    document.body.appendChild(overlay);
+    return overlay;
+  }
+
+  function openImageMagnifier(tile){
+    const img = tile && tile.querySelector("img");
+    if (!img || !img.src) return;
+
+    const overlay = ensureImageMagnifier();
+    const bigImg = document.getElementById("imageMagnifierImg");
+    if (bigImg) {
+      bigImg.src = img.currentSrc || img.src;
+      bigImg.alt = img.alt || "Magnified lesson image";
+    }
+    overlay.hidden = false;
+  }
+
+  document.addEventListener("pointerdown", ev => {
+    const tile = ev.target.closest && ev.target.closest("[data-group][data-index]");
+    if (!tile) return;
+
+    longHoldTriggered = false;
+    window.clearTimeout(longHoldTimer);
+    longHoldTimer = window.setTimeout(() => {
+      longHoldTriggered = true;
+      suppressNextTileClick = true;
+      try { navigator.vibrate && navigator.vibrate(18); } catch(e) {}
+      openImageMagnifier(tile);
+    }, LONG_HOLD_MS);
+  }, true);
+
+  function cancelLongHoldTimer(){
+    window.clearTimeout(longHoldTimer);
+    longHoldTimer = null;
+  }
+
+  document.addEventListener("pointerup", cancelLongHoldTimer, true);
+  document.addEventListener("pointercancel", cancelLongHoldTimer, true);
+  document.addEventListener("pointermove", ev => {
+    if (!longHoldTimer) return;
+    // If the finger drifts off the original frame area, cancel the pending magnifier.
+    const tile = ev.target.closest && ev.target.closest("[data-group][data-index]");
+    if (!tile) cancelLongHoldTimer();
+  }, true);
+
+  document.addEventListener("contextmenu", ev => {
+    const tile = ev.target.closest && ev.target.closest("[data-group][data-index]");
+    if (tile) ev.preventDefault();
+  }, true);
+
+  document.addEventListener("click", ev => {
+    const tile = ev.target.closest && ev.target.closest("[data-group][data-index]");
+    if (!tile) return;
+
+    if (suppressNextTileClick || longHoldTriggered) {
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
+      suppressNextTileClick = false;
+      longHoldTriggered = false;
+    }
+  }, true);
+
+
   // ----- Click handling -----
   document.addEventListener("click", ev => {
     const el = ev.target.closest("[data-group][data-index]");
@@ -1007,8 +1171,7 @@ function closeContactOverlay(){
       const nextLesson = lessonNow + 1;
       sessionStorage.setItem("lesson", String(nextLesson));
       sessionStorage.setItem("selectedLesson", String(nextLesson));
-      sessionStorage.setItem("currentLesson", String(nextLesson));
-      window.location.href = "conductor.html?lesson=" + nextLesson + "&prep=" + Date.now();
+      window.location.reload();
     },
 
     exit(){
@@ -1020,7 +1183,10 @@ function closeContactOverlay(){
     },
 
     help(){
-      goTo("guidelines.html");
+      // Button 4: Help / Guidelines
+      // conductor.html is inside the desktop/phone folder.
+      // The guide folder is beside that folder, one level up from here.
+      goTo("../guide/guidelines.html");
     },
 
     email(){
@@ -1068,42 +1234,27 @@ function closeContactOverlay(){
 <script>
 // ----- Conductor preparation pause -----
 // The lesson select page only chooses the lesson. The visible pause/credits overlay
-// belongs here in conductor.html, where the lesson itself is being prepared.
+// now belongs here, where the lesson itself is being prepared.
 (function(){
-  const MINIMUM_PREP_DELAY_MS = 2000;
-  let prepTimer = null;
-
-  function overlay(){
-    return document.getElementById("prepOverlay");
-  }
-
-  function showPrepOverlay(){
-    const box = overlay();
-    if (box) box.classList.remove("done");
-  }
+  const minimumPauseMs = 2000;
+  const startedAt = Date.now();
 
   function closePrepOverlay(){
-    const box = overlay();
-    if (box) box.classList.add("done");
+    const overlay = document.getElementById("prepOverlay");
+    if (overlay) overlay.classList.add("done");
   }
 
-  function runPrepPause(){
-    showPrepOverlay();
-    window.clearTimeout(prepTimer);
-    prepTimer = window.setTimeout(closePrepOverlay, MINIMUM_PREP_DELAY_MS);
+  function finishAfterMinimumPause(){
+    const elapsed = Date.now() - startedAt;
+    const remaining = Math.max(0, minimumPauseMs - elapsed);
+    window.setTimeout(closePrepOverlay, remaining);
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", runPrepPause, { once:true });
+    document.addEventListener("DOMContentLoaded", finishAfterMinimumPause, { once:true });
   } else {
-    runPrepPause();
+    finishAfterMinimumPause();
   }
-
-  // If the browser restores this page from its back/forward memory,
-  // make the overlay behavior reliable again instead of leaving an old hidden state.
-  window.addEventListener("pageshow", function(ev){
-    if (ev.persisted) runPrepPause();
-  });
 })();
 </script>
 
