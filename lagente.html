@@ -84,12 +84,133 @@
 
   <!-- Return button (English) -->
   <div style="text-align: center; margin-top: 10px;">
-    <button onclick="location.href='./index.html'" style="position:absolute;top:83vh;">
+    <button onclick="returnToConductor()" style="position:absolute;top:83vh;">
       Continuar
     </button>
   </div>
 
   <audio id="player"></audio>
+
+<script>
+  // La Gente has two different jobs:
+  // 1) Normal lesson use: return to the exact conductor page that opened La Gente.
+  // 2) First-time use: carry the welcome-page instruction to structure.html,
+  //    so structure prepares Level 1 and skips lessonselect.html.
+  function getSavedLessonNumber() {
+    const params = new URLSearchParams(window.location.search);
+    const rawLesson =
+      params.get("lesson") ||
+      sessionStorage.getItem("lesson") ||
+      sessionStorage.getItem("selectedLesson") ||
+      sessionStorage.getItem("currentLesson") ||
+      localStorage.getItem("lesson") ||
+      localStorage.getItem("selectedLesson") ||
+      localStorage.getItem("currentLesson") ||
+      "1";
+
+    const n = Number(rawLesson);
+    return Number.isFinite(n) && n > 0 ? String(n) : "1";
+  }
+
+  function isFirstTimeStart(params) {
+    return params.get("firstTime") === "1" ||
+      params.get("autoStartLevel1") === "1" ||
+      sessionStorage.getItem("firstTimeStart") === "yes" ||
+      sessionStorage.getItem("autoStartLevel1") === "yes" ||
+      localStorage.getItem("firstTimeStart") === "yes" ||
+      localStorage.getItem("autoStartLevel1") === "yes";
+  }
+
+  function getLane(params) {
+    const rawLane =
+      params.get("lane") ||
+      sessionStorage.getItem("inglesyaLane") ||
+      localStorage.getItem("inglesyaLane") ||
+      sessionStorage.getItem("platicaLane") ||
+      localStorage.getItem("platicaLane") ||
+      (window.innerWidth < 700 ? "phone" : "desktop");
+
+    return rawLane === "phone" ? "phone" : "desktop";
+  }
+
+  function storeLessonOneForFirstTime(lane) {
+    const lesson = "1";
+
+    // First-time path must not use an old conductor return address.
+    sessionStorage.removeItem("lagenteReturnHref");
+    localStorage.removeItem("lagenteReturnHref");
+
+    sessionStorage.setItem("firstTimeStart", "yes");
+    sessionStorage.setItem("autoStartLevel1", "yes");
+    sessionStorage.setItem("lesson", lesson);
+    sessionStorage.setItem("selectedLesson", lesson);
+    sessionStorage.setItem("currentLesson", lesson);
+    sessionStorage.setItem("inglesyaLane", lane);
+
+    localStorage.setItem("firstTimeStart", "yes");
+    localStorage.setItem("autoStartLevel1", "yes");
+    localStorage.setItem("lesson", lesson);
+    localStorage.setItem("selectedLesson", lesson);
+    localStorage.setItem("currentLesson", lesson);
+    localStorage.setItem("inglesyaLane", lane);
+  }
+
+  function goToFirstTimeStructure(params) {
+    const lane = getLane(params);
+    storeLessonOneForFirstTime(lane);
+
+    const structurePath = lane === "phone"
+      ? "./ingles_phone/structure.html"
+      : "./ingles_desktop/structure.html";
+
+    window.location.href = structurePath + "?autoStartLevel1=1&lesson=1";
+  }
+
+  function returnToConductor() {
+    const params = new URLSearchParams(window.location.search);
+
+    if (isFirstTimeStart(params)) {
+      goToFirstTimeStructure(params);
+      return;
+    }
+
+    const lesson = getSavedLessonNumber();
+
+    sessionStorage.setItem("lesson", lesson);
+    sessionStorage.setItem("selectedLesson", lesson);
+    sessionStorage.setItem("currentLesson", lesson);
+    localStorage.setItem("lesson", lesson);
+    localStorage.setItem("selectedLesson", lesson);
+    localStorage.setItem("currentLesson", lesson);
+
+    // Best path: return to the exact conductor page that opened La Gente.
+    // This avoids guessing folder names.
+    const exactReturn =
+      params.get("returnHref") ||
+      sessionStorage.getItem("lagenteReturnHref") ||
+      localStorage.getItem("lagenteReturnHref");
+
+    if (exactReturn) {
+      try {
+        const url = new URL(exactReturn, window.location.href);
+        url.searchParams.set("lesson", lesson);
+        url.searchParams.set("prep", Date.now());
+        window.location.href = url.href;
+        return;
+      } catch (e) {
+        console.log("Could not use exact La Gente return path:", e);
+      }
+    }
+
+    // Emergency fallback only. Normal conductor use should use exactReturn above.
+    const requestedReturn = params.get("return") || localStorage.getItem("platicaLane") || localStorage.getItem("inglesyaLane") || "desktop";
+    const conductorPath = requestedReturn === "phone"
+      ? "./platicaphone/conductor.html"
+      : "./platicadesktop/conductor.html";
+
+    window.location.href = conductorPath + "?lesson=" + encodeURIComponent(lesson) + "&prep=" + Date.now();
+  }
+</script>
 
 <script>
   const AUDIO_BASE = './characters/audio/';

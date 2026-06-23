@@ -200,9 +200,40 @@
 <body>
   <script>
     // InglesYa automatic transfer page
-    // This page prepares sessionStorage, then immediately opens the lesson selector.
-    sessionStorage.setItem("inglesyaStructureReady", "true");
-    window.location.replace("lessonselect.html");
+    // Normal path: prepare sessionStorage, then open lesson selector.
+    // First-time path from welcome/La Gente: set Level 1 and go straight to conductor.
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const shouldAutoStartLevel1 =
+        params.get("autoStartLevel1") === "1" ||
+        sessionStorage.getItem("autoStartLevel1") === "yes" ||
+        sessionStorage.getItem("firstTimeStart") === "yes" ||
+        localStorage.getItem("autoStartLevel1") === "yes" ||
+        localStorage.getItem("firstTimeStart") === "yes";
+
+      sessionStorage.setItem("inglesyaStructureReady", "true");
+
+      if (shouldAutoStartLevel1) {
+        sessionStorage.setItem("lesson", "1");
+        sessionStorage.setItem("selectedLesson", "1");
+        sessionStorage.setItem("currentLesson", "1");
+        localStorage.setItem("lesson", "1");
+        localStorage.setItem("selectedLesson", "1");
+        localStorage.setItem("currentLesson", "1");
+
+        // Use this instruction once. After conductor opens, normal lesson buttons
+        // should behave normally.
+        sessionStorage.removeItem("autoStartLevel1");
+        sessionStorage.removeItem("firstTimeStart");
+        localStorage.removeItem("autoStartLevel1");
+        localStorage.removeItem("firstTimeStart");
+
+        window.location.replace("conductor.html?lesson=1&prep=" + Date.now());
+        return;
+      }
+
+      window.location.replace("lessonselect.html");
+    })();
   </script>
 
   <main class="page">
