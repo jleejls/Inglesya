@@ -381,12 +381,18 @@
 
 <script>
 // ----- Phone Conductor startup -----
-// Accept the lesson number no matter which earlier page stored it.
+// Accept the lesson number no matter which earlier page stored it,
+// including the lesson number sent back by lagente.html.
 (function () {
+  const urlLesson = new URLSearchParams(window.location.search).get("lesson");
   const storedLesson =
+    urlLesson ||
     sessionStorage.getItem("selectedLesson") ||
     sessionStorage.getItem("lesson") ||
     sessionStorage.getItem("currentLesson") ||
+    localStorage.getItem("selectedLesson") ||
+    localStorage.getItem("lesson") ||
+    localStorage.getItem("currentLesson") ||
     "1";
 
   const cleanLesson = Number(storedLesson);
@@ -394,6 +400,11 @@
 
   sessionStorage.setItem("lesson", lessonToUse);
   sessionStorage.setItem("selectedLesson", lessonToUse);
+  sessionStorage.setItem("currentLesson", lessonToUse);
+
+  localStorage.setItem("lesson", lessonToUse);
+  localStorage.setItem("selectedLesson", lessonToUse);
+  localStorage.setItem("currentLesson", lessonToUse);
 
   if (!sessionStorage.getItem("tense")) {
     sessionStorage.setItem("tense", "now");
@@ -447,24 +458,23 @@ for (let i = 0; i < sessionStorage.length; i++) {
   <div class="buttonz" data-btn="continue" title="Continuar / next lesson">
     <img src="../trigger/adelante.png" alt="Adelante">
   </div>
-<div class="buttonz" data-btn="exit" title="Exit"
-     onclick="window.location.assign('../quit.html');">
-  <img src="../trigger/exit.png">
-</div>
+  <div class="buttonz" data-btn="exit" title="Exit" onclick="window.location.assign('../quit.html');">
+    <img src="../trigger/exit.png" alt="Exit">
+  </div>
   <div class="buttonz" data-btn="choosel" title="Choose lesson">
     <img src="../trigger/choosel.png" alt="Choose lesson">
   </div>
   <div class="buttonz" data-btn="help" title="Help / guidelines">
     <img src="../trigger/help.png" alt="Help">
   </div>
-  <div class="buttonz" data-btn="email" title="Contact Jimmy Lucky">
-    <img src="../trigger/email.png" alt="Email">
-  </div>
   <div class="buttonz" data-btn="donate" title="Donate">
     <img src="../trigger/donate.png" alt="Donate">
   </div>
-  <div class="buttonz" data-btn="goback" title="Go back">
-    <img src="../trigger/goback.png" alt="Back">
+    <div class="buttonz" data-btn="email" title="Contact Jimmy Lucky">
+    <img src="../trigger/email.png" alt="Email">
+  </div>
+  <div class="buttonz" data-btn="lagente" title="La Gente">
+    <img src="../trigger/lagente.png" alt="La Gente">
   </div>
   <div class="buttonz" data-btn="translate" title="Translation">
     <img src="../trigger/translate.png" alt="Translate">
@@ -473,20 +483,12 @@ for (let i = 0; i < sessionStorage.length; i++) {
 
 <div id="contactOverlay" class="contact-overlay" hidden>
   <div class="contact-box">
-    <h2>Contact Jimmy Lucky</h2>
-    <p>To contact Jimmy Lucky, please leave this lesson page and open your own email program.</p>
-    <p>You may write in English or Spanish.</p>
-    <p>Send your message to:</p>
+    <h2>Email Contact</h2>
+    <p>Please send your message to:</p>
     <p class="contact-address">spanishsoundbites@gmail.com</p>
-
-    <a href="https://mail.google.com/mail/?view=cm&fs=1&to=spanishsoundbites@gmail.com" target="_blank" rel="noopener">
-      Open Gmail
-    </a>
-
-    <button type="button" onclick="closeContactOverlay()">Go Back</button>
+    <button type="button" onclick="closeContactOverlay()">Close</button>
   </div>
 </div>
-
 <audio id="player" preload="auto"></audio>
 
 <script>
@@ -1168,10 +1170,23 @@ function closeContactOverlay(){
         alert("You are already on the last lesson.");
         return;
       }
+
       const nextLesson = lessonNow + 1;
+
+      // Keep all lesson storage names in agreement.
       sessionStorage.setItem("lesson", String(nextLesson));
       sessionStorage.setItem("selectedLesson", String(nextLesson));
-      window.location.reload();
+      sessionStorage.setItem("currentLesson", String(nextLesson));
+
+      localStorage.setItem("lesson", String(nextLesson));
+      localStorage.setItem("selectedLesson", String(nextLesson));
+      localStorage.setItem("currentLesson", String(nextLesson));
+
+      // Do not use window.location.reload() here.
+      // After returning from lagente.html, the URL still contains ?lesson=7.
+      // Reloading that same URL makes startup read lesson=7 again, so Button 1
+      // appears stuck on the same lesson. Go to a fresh URL with the next lesson.
+      window.location.href = "conductor.html?lesson=" + encodeURIComponent(nextLesson) + "&prep=" + Date.now();
     },
 
     exit(){
@@ -1197,12 +1212,25 @@ function closeContactOverlay(){
       goTo("donate.html");
     },
 
-    goback(){
-      if (history.length > 1) {
-        history.back();
-      } else {
-        goTo("../index.html");
-      }
+    lagente(){
+      const lesson = currentLesson();
+      const exactReturn = window.location.href;
+
+      // Save the exact phone conductor page that opened La Gente.
+      // lagente.html will use this first, so it does not have to guess paths.
+      sessionStorage.setItem("lesson", String(lesson));
+      sessionStorage.setItem("selectedLesson", String(lesson));
+      sessionStorage.setItem("currentLesson", String(lesson));
+      sessionStorage.setItem("lagenteReturnHref", exactReturn);
+
+      localStorage.setItem("lesson", String(lesson));
+      localStorage.setItem("selectedLesson", String(lesson));
+      localStorage.setItem("currentLesson", String(lesson));
+      localStorage.setItem("lagenteReturnHref", exactReturn);
+      localStorage.setItem("platicaLane", "phone");
+      localStorage.setItem("inglesyaLane", "phone");
+
+      goTo("../lagente.html?return=phone&lesson=" + encodeURIComponent(lesson));
     },
 
     translate(){
