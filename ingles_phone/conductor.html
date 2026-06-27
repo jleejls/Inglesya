@@ -2,189 +2,189 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Phone Conductor</title>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Conductor</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-  *{ box-sizing:border-box; }
-
-  :root{
-    --frame-size:84px;
-    --gap:3px;
-    --column-gap:4px;
-    --circle-size:88px;
-    --button-height:39px;
+   :root{
+    --trigger-size: 54px;
+    --trigger-gap: 8px;
+    --trigger-pad-y: 8px;
+    --trigger-pad-x: 10px;
+    --trigger-bar-height: calc(var(--trigger-size) + (var(--trigger-pad-y) * 2));
   }
-
+  *{ box-sizing:border-box; }
   html, body{
     margin:0;
     width:100%;
-    min-height:100%;
+    height:100%;
     background:#ffffff;
+    overflow:auto;
     font-family:Arial, Helvetica, sans-serif;
+  }
+  body{
+    margin:0;
+    font-family:system-ui,Segoe UI,Roboto,Arial;
+    background:#ffffff;
     color:#222;
   }
-
-  body{
-    padding-bottom:56px; /* keeps bottom buttons from covering lower pictures */
-    overflow-x:hidden;
+  header{
+    display:none;
   }
-
-
-  body.layout-loading main,
-  body.layout-loading #pbar,
-  body.layout-loading #lessonNumberBadge{
-    visibility:hidden;
-  }
-
-  header, h3{ display:none; }
-
   main{
-    width:100%;
-    max-width:420px;
+    max-width:1140px;
     margin:0 auto;
-    padding:5px 5px 2px;
+    padding:46px 12px 64px;
   }
 
-  .section-box{ margin-bottom:var(--gap); }
-
-  .phone-layout-row{
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    gap:var(--column-gap);
-    margin-bottom:var(--gap);
+  h3{
+    display:none;
   }
 
   .lesson-number-badge{
     position:fixed;
-    top:7px;
-    left:7px;
+    top:10px;
+    right:12px;
     z-index:70;
-    width:24px;
-    height:24px;
-    border:1px solid #d7dbe3;
+    width:38px;
+    height:38px;
     border-radius:50%;
-    background:rgba(255,255,255,.88);
-    color:#333;
-    font:700 15px/24px Arial, Helvetica, sans-serif;
-    text-align:center;
+    background:#fffbea;
+    border:2px solid #8a6a25;
+    color:#3b3020;
+    box-shadow:0 2px 8px rgba(0,0,0,.18);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font:bold 18px Arial, Helvetica, sans-serif;
     pointer-events:none;
   }
 
-  .phone-layout-row.object-start-row{
-    margin-top:16px;
+  /* Phone station stage: row counts come from structure.html stationStorage.
+     8 narrow grid tracks let 3-frame rows center above 4-frame rows. */
+  main{
+    max-width:560px;
+    margin:0 auto;
+    padding:14px 8px calc(var(--trigger-bar-height) + 18px);
+  }
+
+  .station-grid{
+    display:grid;
+    grid-template-columns:repeat(8, minmax(0, 1fr));
+    gap:5px;
+    width:min(100%,520px);
+    margin:0 auto;
+    align-items:center;
+  }
+
+  .station-error{
+    width:min(92vw,520px);
+    margin:40px auto;
+    padding:18px;
+    border:2px solid #b00020;
+    border-radius:12px;
+    background:#fff4f4;
+    color:#4d0000;
+    font:16px/1.35 Arial, Helvetica, sans-serif;
+    text-align:center;
   }
 
   .tile{
     position:relative;
-    width:var(--frame-size);
-    height:var(--frame-size);
     border:1px solid #d7dbe3;
-    border-radius:9px;
-    background:#f9fafb;
+    border-radius:8px;
     overflow:hidden;
     cursor:pointer;
+    background:#f9fafb;
+    aspect-ratio:1/1;
     display:flex;
     align-items:center;
     justify-content:center;
   }
 
-  .pronoun-tile{ background:#fffdf7; }
-  .object-tile{ background:#f9fbff; }
+  .tile[data-shape="circle"]{
+    border-radius:50%;
+    overflow:hidden;
+  }
 
-  .tile img{
-    width:96%;
-    height:96%;
+  .tile[data-shape="circle"] img{
+    border-radius:50%;
+    width:82%;
+    height:82%;
+  }
+
+  .tile[data-shape="circle"].speaking{
+    outline:4px solid #c00000;
+    outline-offset:3px;
+    box-shadow:0 0 0 5px rgba(192,0,0,.16), 0 2px 8px rgba(0,0,0,.18);
+  }
+
+  .tile[data-group="objects"] img{
+    width:92%;
+    height:92%;
     object-fit:contain;
     display:block;
-    pointer-events:none;
   }
 
-  .object-tile img{ transform:scale(1.08); }
-
-  .tile.selected{
-    outline:4px solid #c00000;
-    outline-offset:-4px;
-  }
-
-  .expression-circle{
-    width:var(--circle-size);
-    height:var(--circle-size);
-    border-radius:50%;
-    border:2px solid #9a74b8;
-    background:#ffffff;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    overflow:hidden;
-    cursor:pointer;
-    box-shadow:0 2px 6px rgba(0,0,0,.14);
-  }
-
-  .expression-circle img{
+  .tile[data-group="pronouns"] img{
     width:100%;
     height:100%;
-    object-fit:cover;
+    object-fit:contain;
     display:block;
-    pointer-events:none;
   }
 
-  .expression-circle.speaking{
-    outline:4px solid #c00000;
-    outline-offset:2px;
-    box-shadow:0 0 0 4px rgba(192,0,0,.18), 0 2px 8px rgba(0,0,0,.20);
-  }
 
   .label{
-    font:9px/1.15 monospace;
-    color:#777;
+    font:11px/1.2 monospace;
+    color:#555;
     text-align:center;
-    padding:3px;
+    padding:4px;
     white-space:pre-line;
   }
 
-  .expression-circle .label{
-    font-size:10px;
-    color:#5b3972;
-  }
 
-  .foot{ display:none; }
 
-  /* Bottom image-button bar */
+  /* Bottom image buttons copied from the button-study essence */
   .zipbutton{
+    display:flex;
+    flex-direction:row;
+    align-items:center;
+    justify-content:center;
+    gap:2vh;
     position:fixed;
-    left:0;
-    right:0;
-    bottom:0;
-    z-index:80;
-    display:grid;
-    grid-template-columns:repeat(8, 1fr);
-    gap:4px;
-    background:#f0f0f0;
-    border-top:1px solid #ddd;
-    padding:5px;
-    max-width:420px;
-    margin:0 auto;
+    bottom:2vh;
+    left:50%;
+    transform:translateX(-50%);
+    background-color:#f0f0f0;
+    padding:6px 10px;
+    border-radius:10px;
+    border:1px solid #ddd;
+    z-index:50;
   }
 
   .buttonz{
-    min-height:var(--button-height);
     border:2px solid #4CAF50;
-    border-radius:9px;
-    background:#d05000;
+    border-radius:1vw;
+    height:5vh;
+    width:5vw;
+    min-width:56px;
+    min-height:36px;
     display:flex;
     align-items:center;
     justify-content:center;
+    font-size:14px;
+    background-color:#d05000;
     cursor:pointer;
   }
 
   .buttonz img{
     max-width:100%;
-    max-height:34px;
+    max-height:100%;
     display:block;
     pointer-events:none;
   }
 
+
+  /* Email contact overlay: stays invisible until the email button opens it */
   .contact-overlay{
     position:fixed;
     inset:0;
@@ -196,12 +196,14 @@
     padding:20px;
   }
 
-  .contact-overlay[hidden]{ display:none; }
+  .contact-overlay[hidden]{
+    display:none;
+  }
 
   .contact-box{
     background:white;
     color:black;
-    padding:22px;
+    padding:25px;
     border-radius:12px;
     max-width:430px;
     text-align:center;
@@ -228,68 +230,15 @@
     margin:10px 0 14px;
   }
 
-  @media (max-width:380px){
-    main{ padding:4px 4px 1px; }
-    .section-box{ margin-bottom:var(--gap); }
-    .buttonz img{ max-height:31px; }
+  /* Small debug badge */
+  .foot{
+    display:none;
   }
 
-  @media (max-width:330px){
-    body{ padding-bottom:52px; }
-  }
-
-
-  /* Long-hold image magnifier for phone frames. */
-  .image-magnifier-overlay{
-    position:fixed;
-    inset:0;
-    z-index:5000;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:rgba(0,0,0,.62);
-    padding:2vw;
-  }
-
-  .image-magnifier-overlay[hidden]{ display:none; }
-
-  .image-magnifier-frame{
-    position:relative;
-    width:min(96vw, 96vh, 430px);
-    height:min(96vw, 96vh, 430px);
-    border:2px solid #ffffff;
-    border-radius:14px;
-    background:#ffffff;
-    box-shadow:0 10px 32px rgba(0,0,0,.38);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    overflow:hidden;
-  }
-
-  .image-magnifier-frame img{
-    width:100%;
-    height:100%;
-    object-fit:contain;
-    display:block;
-  }
-
-  .image-magnifier-close{
-    position:absolute;
-    top:7px;
-    right:7px;
-    width:30px;
-    height:30px;
-    border:2px solid #ffffff;
-    border-radius:50%;
-    background:#c00000;
-    color:#ffffff;
-    font:700 20px/24px Arial, Helvetica, sans-serif;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    cursor:pointer;
-    box-shadow:0 2px 8px rgba(0,0,0,.25);
+  @media (max-width:600px){
+    main{
+      padding-bottom:80px;
+    }
   }
 
 
@@ -377,12 +326,130 @@
     }
   }
 
-</style>
 
+  /* Right-click image magnifier */
+  .image-magnifier-overlay{
+    position:fixed;
+    inset:0;
+    z-index:10000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,0.72);
+    padding:36px;
+  }
+
+  .image-magnifier-overlay[hidden]{
+    display:none;
+  }
+
+  .image-magnifier-frame{
+    position:relative;
+    max-width:96vw;
+    max-height:96vh;
+    overflow:auto;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+
+  .image-magnifier-frame img{
+    display:block;
+    max-width:88vw;
+    max-height:88vh;
+    object-fit:contain;
+    transform:scale(1.15);
+    transform-origin:center center;
+  }
+
+  .image-magnifier-close{
+    position:absolute;
+    top:8px;
+    right:8px;
+    z-index:10001;
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    border:3px solid #ffffff;
+    background:#d00000;
+    color:#ffffff;
+    font:bold 26px/1 Arial, Helvetica, sans-serif;
+    cursor:pointer;
+    box-shadow:0 2px 10px rgba(0,0,0,0.35);
+  }
+
+  .image-magnifier-close:hover{
+    background:#ff0000;
+  }
+
+
+  /* Phone station layout: 3-4-3-4-3 + 2 circles from stationStorage. */
+  @media (max-width:700px){
+    html, body{
+      overflow-x:hidden;
+    }
+
+    main{
+      max-width:100vw;
+      padding:8px 6px calc(var(--trigger-bar-height) + 18px);
+    }
+
+    .lesson-number-badge{
+      top:5px;
+      right:6px;
+      width:30px;
+      height:30px;
+      font-size:14px;
+      z-index:80;
+    }
+
+    .station-grid{
+      width:100%;
+      max-width:520px;
+      gap:4px;
+    }
+
+    .tile{
+      width:100%;
+      min-height:0;
+      aspect-ratio:1/1;
+      border-radius:7px;
+    }
+
+    .tile[data-shape="circle"]{
+      border-radius:50%;
+    }
+
+    .tile[data-shape="circle"] img{
+      border-radius:50%;
+      width:82%;
+      height:82%;
+    }
+
+    .zipbutton{
+      bottom:5px;
+      width:calc(100vw - 8px);
+      max-width:520px;
+      gap:3px;
+      padding:4px;
+      justify-content:space-between;
+    }
+
+    .buttonz{
+      width:11.5vw;
+      height:42px;
+      min-width:36px;
+      min-height:34px;
+      border-radius:8px;
+    }
+  }
+
+
+</style>
 <script>
-// ----- Phone Conductor startup -----
-// Accept the lesson number no matter which earlier page stored it,
-// including the lesson number sent back by lagente.html.
+// ----- Conductor startup -----
+// Accept the lesson number no matter which earlier page stored it.
 (function () {
   const urlLesson = new URLSearchParams(window.location.search).get("lesson");
   const storedLesson =
@@ -390,9 +457,6 @@
     sessionStorage.getItem("selectedLesson") ||
     sessionStorage.getItem("lesson") ||
     sessionStorage.getItem("currentLesson") ||
-    localStorage.getItem("selectedLesson") ||
-    localStorage.getItem("lesson") ||
-    localStorage.getItem("currentLesson") ||
     "1";
 
   const cleanLesson = Number(storedLesson);
@@ -400,26 +464,33 @@
 
   sessionStorage.setItem("lesson", lessonToUse);
   sessionStorage.setItem("selectedLesson", lessonToUse);
-  sessionStorage.setItem("currentLesson", lessonToUse);
-
-  localStorage.setItem("lesson", lessonToUse);
-  localStorage.setItem("selectedLesson", lessonToUse);
-  localStorage.setItem("currentLesson", lessonToUse);
 
   if (!sessionStorage.getItem("tense")) {
     sessionStorage.setItem("tense", "now");
   }
 })();
 
-console.log("=== PHONE CONDUCTOR STORAGE CHECK ===");
+const lesson = sessionStorage.getItem("lesson") || "1";
+const tense  = sessionStorage.getItem("tense")  || "now";
+
+console.log("=== CONDUCTOR STORAGE CHECK ===");
+
 for (let i = 0; i < sessionStorage.length; i++) {
   const key = sessionStorage.key(i);
   console.log(key, "=", sessionStorage.getItem(key));
 }
 </script>
 </head>
+<body>
 
-<body class="layout-loading">
+
+<div id="imageMagnifierOverlay" class="image-magnifier-overlay" hidden aria-label="Magnified image viewer">
+  <div class="image-magnifier-frame">
+    <button id="imageMagnifierClose" class="image-magnifier-close" type="button" aria-label="Close magnified image">×</button>
+    <img id="imageMagnifierImage" alt="Magnified image">
+  </div>
+</div>
+
 
 <div id="prepOverlay" class="prep-overlay" aria-live="polite" aria-label="Lesson preparation message">
   <div class="prep-card">
@@ -443,41 +514,39 @@ for (let i = 0; i < sessionStorage.length; i++) {
 </div>
 
 
-<div id="lessonNumberBadge" class="lesson-number-badge" aria-label="Lesson number"></div>
+<div id="lessonBadge" class="lesson-number-badge" aria-label="Lesson number"></div>
 
-<header id="banner">Phone Conductor</header>
+<header id="banner">Director</header>
 
 <main>
-  <section class="section-box">
-    <h3>Phone Lesson</h3>
-    <div id="phoneLayoutMount" class="phone-layout"></div>
-  </section>
+  <div id="stationGrid" class="station-grid" aria-label="Phone learning stations"></div>
 </main>
 
 <div id="pbar" class="zipbutton" aria-label="Program buttons">
-  <div class="buttonz" data-btn="continue" title="Continuar / next lesson">
-    <img src="../trigger/adelante.png" alt="Adelante">
+  <div class="buttonz" data-btn="continue" title="Advance to next page">
+    <img src="../trigger/adelante.jpg" alt="Advance">
   </div>
   <div class="buttonz" data-btn="exit" title="Exit" onclick="window.location.assign('../quit.html');">
-    <img src="../trigger/exit.png" alt="Exit">
+    <img src="../trigger/exit.jpg" alt="Exit">
   </div>
   <div class="buttonz" data-btn="choosel" title="Choose lesson">
-    <img src="../trigger/choosel.png" alt="Choose lesson">
+    <img src="../trigger/choosel.jpg" alt="Choose lesson">
   </div>
   <div class="buttonz" data-btn="help" title="Help / guidelines">
-    <img src="../trigger/help.png" alt="Help">
+    <img src="../trigger/help.jpg" alt="Help">
   </div>
   <div class="buttonz" data-btn="donate" title="Donate">
-    <img src="../trigger/donate.png" alt="Donate">
+    <img src="../trigger/donate.jpg" alt="Donate">
   </div>
     <div class="buttonz" data-btn="email" title="Contact Jimmy Lucky">
-    <img src="../trigger/email.png" alt="Email">
+    <img src="../trigger/email.jpg" alt="Email">
   </div>
-  <div class="buttonz" data-btn="lagente" title="La Gente">
-    <img src="../trigger/lagente.png" alt="La Gente">
+  <!-- Button 7: La Gente - use the same clean desktop return pattern as Plática V2 -->
+  <div class="buttonz" data-btn="goback" title="La Gente">
+    <img src="../trigger/lagente.jpg" alt="La Gente">
   </div>
   <div class="buttonz" data-btn="translate" title="Translation">
-    <img src="../trigger/translate.png" alt="Translate">
+    <img src="../trigger/translate.jpg" alt="Translate">
   </div>
 </div>
 
@@ -493,142 +562,78 @@ for (let i = 0; i < sessionStorage.length; i++) {
 
 <script>
 (function(){
-  // ----- Safe sessionStorage receiver -----
-  // This conductor reads the structure page's instructions.
-  // It does not repair, rewrite, resize, or reposition the stored layout.
-  function readJSON(key, fallback){
-    try{
-      const raw = sessionStorage.getItem(key);
-      if (!raw) return fallback;
-      const value = JSON.parse(raw);
-      return value == null ? fallback : value;
-    } catch(err){
-      console.warn("Bad sessionStorage JSON for", key, err);
-      return fallback;
+  // ----- Layout comes only from stationStorage written by structure.html -----
+  const stationStorageRaw = sessionStorage.getItem("stationStorage");
+  let stationStorage = null;
+
+  function showStationStorageError(message){
+    const main = document.querySelector("main");
+    if (main) {
+      main.innerHTML = `<div class="station-error"><strong>Structure error</strong><br>${message}<br><br>Open <strong>structure.html</strong> first so it can place the phone stations into session storage.</div>`;
     }
+    throw new Error(message);
   }
 
-  function numberOr(value, fallback){
-    const n = Number(value);
-    return Number.isFinite(n) ? n : fallback;
+  if (!stationStorageRaw) {
+    showStationStorageError("No stationStorage information reached conductor.html.");
   }
 
-  const tense = sessionStorage.getItem("tense") || "now";
+  try {
+    stationStorage = JSON.parse(stationStorageRaw);
+  } catch (err) {
+    showStationStorageError("stationStorage exists, but it is not valid JSON.");
+  }
 
+  if (!stationStorage || !Array.isArray(stationStorage.stations) || !stationStorage.stations.length) {
+    showStationStorageError("stationStorage does not contain a usable stations list.");
+  }
+
+  const exprIds = Array.isArray(stationStorage.expressionPronounIds)
+    ? stationStorage.expressionPronounIds.map(Number)
+    : [];
+
+  const tense  = sessionStorage.getItem("tense")  || "now";
   let lesson = Number(
     sessionStorage.getItem("lesson") ||
     sessionStorage.getItem("selectedLesson") ||
     sessionStorage.getItem("currentLesson") ||
     "1"
   );
-
   if (!lesson || Number.isNaN(lesson)) lesson = 1;
   sessionStorage.setItem("lesson", String(lesson));
   sessionStorage.setItem("selectedLesson", String(lesson));
 
-  const phoneLayoutConfig = readJSON("phoneLayoutConfig", null);
-  const storedPronounSlots = readJSON("pronounSlots", []);
-  const storedObjectSlots = readJSON("objectSlots", []);
-  const storedExpressionSlots = readJSON("expressionSlots", []);
-  const exprIds = readJSON("expressionPronounIds", [8, 9]);
-
-  // Display-only emergency fallbacks. These keep the page from going blank if
-  // structure.html was bypassed, but they are never written back into storage.
-  const pronounSlots = Array.isArray(storedPronounSlots) && storedPronounSlots.length
-    ? storedPronounSlots
-    : [1,2,3,4,5,6,7].map(id => ({ id, kind:"main" }));
-
-  const objectSlots = Array.isArray(storedObjectSlots) && storedObjectSlots.length
-    ? storedObjectSlots
-    : [1,2,3,4,5,6,7,8,9,10].map(id => ({ id }));
-
-  const expressionSlots = Array.isArray(storedExpressionSlots) && storedExpressionSlots.length
-    ? storedExpressionSlots
-    : [8,9].map(id => ({ id }));
-
-  const layoutRows = phoneLayoutConfig && Array.isArray(phoneLayoutConfig.rows) && phoneLayoutConfig.rows.length
-    ? phoneLayoutConfig.rows
-    : [
-        { group:"pronouns", ids:[1,2,3] },
-        { group:"pronouns", ids:[4,5,6,7] },
-        { group:"objects", ids:[1,2,3] },
-        { group:"objects", ids:[4,5,6,7] },
-        { group:"objects", ids:[8,9,10] },
-        { group:"expressions", ids:[8,9] }
-      ];
-
-  // Apply only the structure-provided layout values.
-  // These are not conductor decisions; they are the conductor obeying structure.html.
-  (function applyStructureLayout(){
-    const root = document.documentElement;
-    const scale = phoneLayoutConfig ? numberOr(phoneLayoutConfig.frameScale, 1) : 1;
-    const rowGap = phoneLayoutConfig ? numberOr(phoneLayoutConfig.rowGapPx, 3) : 3;
-    const columnGap = phoneLayoutConfig ? numberOr(phoneLayoutConfig.columnGapPx, rowGap) : 4;
-
-    const viewportWidth = Math.max(300, Math.min(window.innerWidth || 360, 420));
-    const largestRow = layoutRows.reduce((max, row) => Math.max(max, Array.isArray(row.ids) ? row.ids.length : 0), 1);
-    const usableWidth = viewportWidth - 10 - Math.max(0, largestRow - 1) * columnGap;
-    const baseFrameSize = Math.floor(usableWidth / largestRow);
-    const requestedFrameSize = Math.floor(baseFrameSize * scale);
-    const maxFrameSize = Math.floor(usableWidth / largestRow);
-    const frameSize = Math.max(56, Math.min(requestedFrameSize, maxFrameSize));
-    const circleSize = Math.max(58, Math.min(96, Math.round(frameSize * 1.04)));
-
-    root.style.setProperty("--frame-size", frameSize + "px");
-    root.style.setProperty("--gap", rowGap + "px");
-    root.style.setProperty("--column-gap", columnGap + "px");
-    root.style.setProperty("--circle-size", circleSize + "px");
-
-    if (phoneLayoutConfig && phoneLayoutConfig.preventScrolling) {
-      document.documentElement.style.overflowX = "hidden";
-      document.body.style.overflowX = "hidden";
-    }
-  })();
-
-  // IMPORTANT: phone conductor sits inside ingles_phone.
-  // group is one folder above ingles_phone, so we use ../group
   const basePath = `../group/lesson${lesson}`;
-  document.getElementById("banner").textContent = `Phone — Lesson ${lesson}`;
-  document.getElementById("lessonNumberBadge").textContent = String(lesson);
+  document.getElementById("banner").textContent = "";
+  const lessonBadge = document.getElementById("lessonBadge");
+  if (lessonBadge) lessonBadge.textContent = String(lesson);
 
   // ----- Paths -----
-  // Supports both folder styles:
-  // 1) older split folders: pronouns/images, objects/images, pronouns/audios, objects/audios
-  // 2) newer single folders: image and sound
-  const pronImg = i => [
-    `${basePath}/image/p${i + 10}.png`,
-    `${basePath}/image/p${i}.png`,
-    `${basePath}/pronouns/images/p${i}.png`,
-    `${basePath}/pronouns/images/img_${i}.png`,
-    `${basePath}/pronouns/image/p${i}.png`
-  ];
+  // Strict modular JPG version:
+  // Images are loaded only from the new split lesson folders.
+  // No PNG fallback. No old single-folder fallback. No JPEG alternate.
+  // If a JPG is missing or misnamed, the tile displays a clear missing-file label.
+  const ASSET_VERSION = "clean-sps-strict-jpg-20260624";
+  const imgPath = path => `${path}?v=${ASSET_VERSION}`;
 
-  const objImg = i => [
-    `${basePath}/image/p${i}.png`,
-    `${basePath}/image/o${i}.png`,
-    `${basePath}/objects/images/p${i}.png`,
-    `${basePath}/objects/images/img_${i}.png`,
-    `${basePath}/objects/image/o${i}.png`,
-    `${basePath}/image/p${i + 9}.png`,
-    `${basePath}/image/p${i + 10}.png`
-  ];
-
+  const pronImg = i => imgPath(`${basePath}/pronouns/images/p${i}.jpg`);
+  const objImg  = i => imgPath(`${basePath}/objects/images/p${i}.jpg`);
   const pronAud = i => [
     `${basePath}/pronouns/audios/a${i}.m4a`,
     `${basePath}/sound/${i + 10}.m4a`,
     `${basePath}/sound/${i}.m4a`
   ];
-
-  const objAud = i => [
+  const objAud  = i => [
     `${basePath}/objects/audios/a${i}.m4a`,
     `${basePath}/sound/${i}.m4a`
   ];
 
+
   // ----- Conversation-circle audio paths -----
-  // Francisco uses the first expression circle, Rachel uses the second.
-  // One click on either circle plays one two-part exchange, then stops.
-  const FRANCISCO_EXPRESSION_ID = expressionSlots[0]?.id || exprIds[0] || 8;
-  const RACHEL_EXPRESSION_ID = expressionSlots[1]?.id || exprIds[1] || 9;
+  // Francisco uses expression pronoun P8, Rachel uses expression pronoun P9.
+  // These IDs are read from the structure station storage.
+  const FRANCISCO_EXPRESSION_ID = exprIds[0] || 8;
+  const RACHEL_EXPRESSION_ID = exprIds[1] || 9;
 
   function conversationAud(speaker, role, number){
     const shortSpeaker = speaker === "francisco" ? "f" : "r";
@@ -644,48 +649,39 @@ for (let i = 0; i < sessionStorage.length; i++) {
     ];
   }
 
-  // Start with Francisco statement + Rachel reply.
-  // Change this to true after the Rachel-statement / Francisco-reply audios are recorded.
-  const USE_RACHEL_STATEMENT_ROUND = false;
-
-  function buildConversationPairs(){
-    const pairs = [];
+  function buildConversationItems(){
+    const items = [];
 
     for (let i = 1; i <= 15; i++) {
-      pairs.push([
-        { speakerId: FRANCISCO_EXPRESSION_ID, sources: conversationAud("francisco", "statement", i) },
-        { speakerId: RACHEL_EXPRESSION_ID, sources: conversationAud("rachel", "reply", i) }
-      ]);
+      items.push({ speakerId: FRANCISCO_EXPRESSION_ID, sources: conversationAud("francisco", "statement", i) });
+      items.push({ speakerId: RACHEL_EXPRESSION_ID, sources: conversationAud("rachel", "reply", i) });
     }
 
-    if (USE_RACHEL_STATEMENT_ROUND) {
-      for (let i = 1; i <= 15; i++) {
-        pairs.push([
-          { speakerId: RACHEL_EXPRESSION_ID, sources: conversationAud("rachel", "statement", i) },
-          { speakerId: FRANCISCO_EXPRESSION_ID, sources: conversationAud("francisco", "reply", i) }
-        ]);
-      }
+    for (let i = 1; i <= 15; i++) {
+      items.push({ speakerId: RACHEL_EXPRESSION_ID, sources: conversationAud("rachel", "statement", i) });
+      items.push({ speakerId: FRANCISCO_EXPRESSION_ID, sources: conversationAud("francisco", "reply", i) });
     }
 
-    return pairs;
+    return items;
   }
 
   // ----- Tile builder -----
-  function makeTile(srcList, fallbackLabel, extraClass){
+  function makeTile(srcList, fallbackLabel, station){
     const sources = Array.isArray(srcList) ? srcList : [srcList];
     let srcIndex = 0;
 
     const d = document.createElement("div");
-    d.className = extraClass ? `tile ${extraClass}` : "tile";
+    d.className = "tile";
+    d.dataset.group = station.group;
+    d.dataset.index = String(station.id);
+    d.dataset.station = station.station || "";
+    d.dataset.shape = station.shape || "rectangle";
+    d.dataset.kind = station.kind || "";
+    d.style.gridRow = String(station.row);
+    d.style.gridColumn = station.gridColumn;
 
     const img = document.createElement("img");
     img.alt = fallbackLabel;
-
-    function markTileReady(){
-      d.dataset.ready = "yes";
-    }
-
-    img.onload = markTileReady;
 
     img.onerror = () => {
       srcIndex += 1;
@@ -693,7 +689,6 @@ for (let i = 0; i < sessionStorage.length; i++) {
         img.src = sources[srcIndex];
       } else {
         d.innerHTML = `<div class="label">missing:\n${fallbackLabel}</div>`;
-        markTileReady();
       }
     };
 
@@ -702,134 +697,36 @@ for (let i = 0; i < sessionStorage.length; i++) {
     return d;
   }
 
-  function findSlot(slots, id){
-    return slots.find(slot => Number(slot.id) === Number(id)) || { id };
-  }
-
+  // ----- Build tiles exactly from stationStorage -----
+  const stationGrid = document.getElementById("stationGrid");
   const expressionTilesByIndex = {};
 
-  function buildOneTile(group, id){
-    let tile;
-
-    if (group === "pronouns") {
-      const slot = findSlot(pronounSlots, id);
-      tile = makeTile(pronImg(slot.id), `p${slot.id}.png`, "pronoun-tile");
-      tile.dataset.group = "pronouns";
-      tile.dataset.index = slot.id;
-      tile.dataset.kind = slot.kind || "main";
-      return tile;
+  stationStorage.stations.forEach(station => {
+    if (!station || !station.group || !station.id || !station.row || !station.gridColumn) {
+      showStationStorageError("A station entry is incomplete.");
     }
 
-    if (group === "objects") {
-      const slot = findSlot(objectSlots, id);
-      tile = makeTile(objImg(slot.id), `o${slot.id}.png`, "object-tile");
-      tile.dataset.group = "objects";
-      tile.dataset.index = slot.id;
-      return tile;
+    const src = station.group === "pronouns" ? pronImg(Number(station.id)) : objImg(Number(station.id));
+    const folderLabel = station.group === "pronouns" ? "pronouns/images" : "objects/images";
+    const tile = makeTile(src, `${folderLabel}/p${station.id}.jpg`, station);
+
+    if (station.group === "pronouns" && isExpressionPronoun(Number(station.id))) {
+      expressionTilesByIndex[Number(station.id)] = tile;
     }
 
-    if (group === "expressions") {
-      const slot = findSlot(expressionSlots, id);
-      tile = makeTile(pronImg(slot.id), `expression p${slot.id}.png`, "expression-circle");
-      tile.dataset.group = "expressions";
-      tile.dataset.index = slot.id;
-      expressionTilesByIndex[Number(slot.id)] = tile;
-      return tile;
-    }
-
-    return null;
-  }
-
-  // ----- Build exactly the rows provided by structure.html -----
-  const mount = document.getElementById("phoneLayoutMount");
-  let previousRowGroup = null;
-
-  layoutRows.forEach(rowSpec => {
-    if (!rowSpec || !Array.isArray(rowSpec.ids)) return;
-
-    const rowGroup = rowSpec.group || "unknown";
-    const row = document.createElement("div");
-    row.className = "phone-layout-row";
-    row.dataset.group = rowGroup;
-
-    // Add a small visual breathing space where the object rows begin.
-    if (rowGroup === "objects" && previousRowGroup !== "objects") {
-      row.classList.add("object-start-row");
-    }
-
-    rowSpec.ids.forEach(id => {
-      const tile = buildOneTile(rowSpec.group, id);
-      if (tile) row.appendChild(tile);
-    });
-
-    mount.appendChild(row);
-    previousRowGroup = rowGroup;
-  });
-
-  // Keep the screen hidden until the picture elements have finished loading.
-  // This prevents a momentary flash of empty frames before the finished layout appears.
-  (function revealLayoutWhenImagesAreReady(){
-    const startedAt = Date.now();
-    const maximumWait = 1800;
-
-    function reveal(){
-      document.body.classList.remove("layout-loading");
-    }
-
-    function allTilesReady(){
-      const tiles = Array.from(mount.querySelectorAll(".tile"));
-      if (!tiles.length) return true;
-      return tiles.every(tile => tile.dataset.ready === "yes");
-    }
-
-    function check(){
-      if (allTilesReady() || Date.now() - startedAt > maximumWait) {
-        requestAnimationFrame(reveal);
-      } else {
-        window.setTimeout(check, 40);
-      }
-    }
-
-    check();
-  })();
-
-  // Debug badge
-  const foot = document.createElement("div");
-  foot.className = "foot";
-  foot.textContent = `tense=${tense}  lesson=${lesson}  P=${pronounSlots.length}  O=${objectSlots.length}  E=${expressionSlots.length}`;
-  document.body.appendChild(foot);
-
-  console.log("=== PHONE CONDUCTOR RECEIVED STRUCTURE ===", {
-    lesson,
-    tense,
-    phoneLayoutConfig,
-    pronounSlots,
-    objectSlots,
-    expressionSlots,
-    expressionPronounIds: exprIds,
-    layoutRows
+    stationGrid.appendChild(tile);
   });
 
   // ----- Audio logic: no overlaps, serial uniting -----
   const player = document.getElementById("player");
   let lastPronSrc = null;
   let lastPronJoinable = false;
-  let selectedPronTile = null;
   let playToken = 0;
 
-  function clearPronounSelection(){
-    if (selectedPronTile) selectedPronTile.classList.remove("selected");
-    selectedPronTile = null;
-  }
-
-  function selectPronounTile(tile){
-    clearPronounSelection();
-    selectedPronTile = tile;
-    selectedPronTile.classList.add("selected");
-  }
-
   function isExpressionPronoun(index){
-    return Array.isArray(exprIds) && exprIds.map(Number).includes(Number(index));
+    // A8 and A9 are expression audios.
+    // They must always play alone and must never be saved for joining with objects.
+    return index === 8 || index === 9 || exprIds.includes(index);
   }
 
   function playSequence(sources){
@@ -837,10 +734,6 @@ for (let i = 0; i < sessionStorage.length; i++) {
     playToken++;
     const myToken = playToken;
     let i = 0;
-
-    try { player.pause(); } catch(e) {}
-    player.onended = null;
-    player.onerror = null;
 
     function playOne(srcList){
       const choices = Array.isArray(srcList) ? srcList : [srcList];
@@ -879,14 +772,52 @@ for (let i = 0; i < sessionStorage.length; i++) {
     next();
   }
 
+
   function clearExpressionHighlights(){
     Object.values(expressionTilesByIndex).forEach(tile => tile.classList.remove("speaking"));
   }
 
   function markExpressionSpeaker(speakerId){
     clearExpressionHighlights();
-    const tile = expressionTilesByIndex[Number(speakerId)];
+    const tile = expressionTilesByIndex[speakerId];
     if (tile) tile.classList.add("speaking");
+  }
+
+  // Conversation stepping: one click plays one two-part exchange, then stops.
+  // The exchanges are shuffled, so the student does not hear 1,2,3,4 every time.
+  // After every exchange in the active set has been used once, the shuffle bag refills
+  // and a new random round begins automatically.
+  //
+  // For the current Lesson 1 trial, this is set to false because you have
+  // Francisco statements + Rachel replies prepared.
+  // Later, after Rachel statements + Francisco replies are recorded, change this to true.
+  const USE_RACHEL_STATEMENT_ROUND = false;
+
+  let conversationShuffleBag = [];
+
+  function buildConversationPairs(){
+    const pairs = [];
+
+    // Francisco asks / Rachel replies: 15 two-part exchanges.
+    for (let i = 1; i <= 15; i++) {
+      pairs.push([
+        { speakerId: FRANCISCO_EXPRESSION_ID, sources: conversationAud("francisco", "statement", i) },
+        { speakerId: RACHEL_EXPRESSION_ID, sources: conversationAud("rachel", "reply", i) }
+      ]);
+    }
+
+    // Rachel asks / Francisco replies: second 15 exchanges.
+    // Turn this on after those 30 additional audio files exist.
+    if (USE_RACHEL_STATEMENT_ROUND) {
+      for (let i = 1; i <= 15; i++) {
+        pairs.push([
+          { speakerId: RACHEL_EXPRESSION_ID, sources: conversationAud("rachel", "statement", i) },
+          { speakerId: FRANCISCO_EXPRESSION_ID, sources: conversationAud("francisco", "reply", i) }
+        ]);
+      }
+    }
+
+    return pairs;
   }
 
   function shuffleArray(items){
@@ -898,8 +829,6 @@ for (let i = 0; i < sessionStorage.length; i++) {
     }
     return items;
   }
-
-  let conversationShuffleBag = [];
 
   function refillConversationShuffleBag(){
     conversationShuffleBag = shuffleArray(buildConversationPairs());
@@ -974,133 +903,13 @@ for (let i = 0; i < sessionStorage.length; i++) {
     next();
   }
 
-  // ----- Long-hold magnifier -----
-  // A brief tap still plays audio. A long hold opens a large square image view
-  // and suppresses the tap/click audio that mobile browsers normally fire after release.
-  let longHoldTimer = null;
-  let longHoldTriggered = false;
-  let suppressNextTileClick = false;
-  const LONG_HOLD_MS = 560;
-
-  function closeImageMagnifier(){
-    const overlay = document.getElementById("imageMagnifierOverlay");
-    if (overlay) overlay.hidden = true;
-  }
-
-  function ensureImageMagnifier(){
-    let overlay = document.getElementById("imageMagnifierOverlay");
-    if (overlay) return overlay;
-
-    overlay = document.createElement("div");
-    overlay.id = "imageMagnifierOverlay";
-    overlay.className = "image-magnifier-overlay";
-    overlay.hidden = true;
-    overlay.setAttribute("aria-label", "Magnified image");
-
-    const frame = document.createElement("div");
-    frame.className = "image-magnifier-frame";
-
-    const img = document.createElement("img");
-    img.id = "imageMagnifierImg";
-    img.alt = "Magnified lesson image";
-
-    const close = document.createElement("button");
-    close.type = "button";
-    close.className = "image-magnifier-close";
-    close.setAttribute("aria-label", "Close magnified image");
-    close.textContent = "×";
-
-    close.addEventListener("click", ev => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      closeImageMagnifier();
-    });
-
-    overlay.addEventListener("click", ev => {
-      if (ev.target === overlay) closeImageMagnifier();
-    });
-
-    frame.appendChild(img);
-    frame.appendChild(close);
-    overlay.appendChild(frame);
-    document.body.appendChild(overlay);
-    return overlay;
-  }
-
-  function openImageMagnifier(tile){
-    const img = tile && tile.querySelector("img");
-    if (!img || !img.src) return;
-
-    const overlay = ensureImageMagnifier();
-    const bigImg = document.getElementById("imageMagnifierImg");
-    if (bigImg) {
-      bigImg.src = img.currentSrc || img.src;
-      bigImg.alt = img.alt || "Magnified lesson image";
-    }
-    overlay.hidden = false;
-  }
-
-  document.addEventListener("pointerdown", ev => {
-    const tile = ev.target.closest && ev.target.closest("[data-group][data-index]");
-    if (!tile) return;
-
-    longHoldTriggered = false;
-    window.clearTimeout(longHoldTimer);
-    longHoldTimer = window.setTimeout(() => {
-      longHoldTriggered = true;
-      suppressNextTileClick = true;
-      try { navigator.vibrate && navigator.vibrate(18); } catch(e) {}
-      openImageMagnifier(tile);
-    }, LONG_HOLD_MS);
-  }, true);
-
-  function cancelLongHoldTimer(){
-    window.clearTimeout(longHoldTimer);
-    longHoldTimer = null;
-  }
-
-  document.addEventListener("pointerup", cancelLongHoldTimer, true);
-  document.addEventListener("pointercancel", cancelLongHoldTimer, true);
-  document.addEventListener("pointermove", ev => {
-    if (!longHoldTimer) return;
-    // If the finger drifts off the original frame area, cancel the pending magnifier.
-    const tile = ev.target.closest && ev.target.closest("[data-group][data-index]");
-    if (!tile) cancelLongHoldTimer();
-  }, true);
-
-  document.addEventListener("contextmenu", ev => {
-    const tile = ev.target.closest && ev.target.closest("[data-group][data-index]");
-    if (tile) ev.preventDefault();
-  }, true);
-
-  document.addEventListener("click", ev => {
-    const tile = ev.target.closest && ev.target.closest("[data-group][data-index]");
-    if (!tile) return;
-
-    if (suppressNextTileClick || longHoldTriggered) {
-      ev.preventDefault();
-      ev.stopImmediatePropagation();
-      suppressNextTileClick = false;
-      longHoldTriggered = false;
-    }
-  }, true);
-
-
   // ----- Click handling -----
   document.addEventListener("click", ev => {
-    const el = ev.target.closest("[data-group][data-index]");
+    const el = ev.target.closest(".tile[data-group][data-index]");
     if (!el) return;
 
     const group = el.dataset.group;
     const index = Number(el.dataset.index);
-
-    if (group === "expressions") {
-      lastPronSrc = null;
-      lastPronJoinable = false;
-      clearPronounSelection();
-      playRandomConversationPair();
-      return;
-    }
 
     if (group === "pronouns") {
       const src = pronAud(index);
@@ -1108,31 +917,34 @@ for (let i = 0; i < sessionStorage.length; i++) {
       if (isExpressionPronoun(index)) {
         lastPronSrc = null;
         lastPronJoinable = false;
-        clearPronounSelection();
         playRandomConversationPair();
       } else {
         lastPronSrc = src;
         lastPronJoinable = true;
-        selectPronounTile(el);
         playSequence([src]);
       }
       return;
     }
 
-    if (group === "objects") {
-      const srcObj = objAud(index);
+if (group === "objects") {
+  const srcObj = objAud(index);
 
-      if (lastPronSrc && lastPronJoinable) {
-        playSequence([lastPronSrc, srcObj]);
-        lastPronSrc = null;
-        lastPronJoinable = false;
-        clearPronounSelection();
-      } else {
-        playSequence([srcObj]);
-      }
-      return;
-    }
+  if (lastPronSrc && lastPronJoinable) {
+    // First click after a pronoun: play united phrase
+    playSequence([lastPronSrc, srcObj]);
+
+    // Then clear the saved pronoun so the NEXT object click is simple
+    lastPronSrc = null;
+    lastPronJoinable = false;
+  } else {
+    // No active pronoun: play only the object audio
+    playSequence([srcObj]);
+  }
+  return;
+}
+  
   });
+
 })();
 </script>
 
@@ -1150,6 +962,7 @@ function closeContactOverlay(){
 
 <script>
 // ----- Bottom image-button actions -----
+// This is the working button-study idea, now connected to real conductor actions.
 (function(){
   const pbar = document.getElementById("pbar");
   if (!pbar) return;
@@ -1166,27 +979,18 @@ function closeContactOverlay(){
   const actions = {
     continue(){
       const lessonNow = currentLesson();
-      if (lessonNow >= 20) {
+      const nextLesson = lessonNow + 1;
+
+      if (nextLesson > 20) {
         alert("You are already on the last lesson.");
         return;
       }
 
-      const nextLesson = lessonNow + 1;
-
-      // Keep all lesson storage names in agreement.
       sessionStorage.setItem("lesson", String(nextLesson));
       sessionStorage.setItem("selectedLesson", String(nextLesson));
       sessionStorage.setItem("currentLesson", String(nextLesson));
 
-      localStorage.setItem("lesson", String(nextLesson));
-      localStorage.setItem("selectedLesson", String(nextLesson));
-      localStorage.setItem("currentLesson", String(nextLesson));
-
-      // Do not use window.location.reload() here.
-      // After returning from lagente.html, the URL still contains ?lesson=7.
-      // Reloading that same URL makes startup read lesson=7 again, so Button 1
-      // appears stuck on the same lesson. Go to a fresh URL with the next lesson.
-      window.location.href = "conductor.html?lesson=" + encodeURIComponent(nextLesson) + "&prep=" + Date.now();
+      window.location.href = "conductor.html?lesson=" + nextLesson + "&prep=" + Date.now();
     },
 
     exit(){
@@ -1198,10 +1002,7 @@ function closeContactOverlay(){
     },
 
     help(){
-      // Button 4: Help / Guidelines
-      // conductor.html is inside the desktop/phone folder.
-      // The guide folder is beside that folder, one level up from here.
-      goTo("../guide/guidelines.html");
+      goTo("guidelines.html");
     },
 
     email(){
@@ -1212,25 +1013,26 @@ function closeContactOverlay(){
       goTo("donate.html");
     },
 
-    lagente(){
+    // Button 7: La Gente - clean lane return, no file URL storage and no Plática fallback.
+    openLaGente(){
       const lesson = currentLesson();
-      const exactReturn = window.location.href;
-
-      // Save the exact phone conductor page that opened La Gente.
-      // lagente.html will use this first, so it does not have to guess paths.
+      sessionStorage.setItem("inglesyaLane", "phone");
+      localStorage.setItem("inglesyaLane", "phone");
       sessionStorage.setItem("lesson", String(lesson));
       sessionStorage.setItem("selectedLesson", String(lesson));
       sessionStorage.setItem("currentLesson", String(lesson));
-      sessionStorage.setItem("lagenteReturnHref", exactReturn);
-
       localStorage.setItem("lesson", String(lesson));
       localStorage.setItem("selectedLesson", String(lesson));
       localStorage.setItem("currentLesson", String(lesson));
-      localStorage.setItem("lagenteReturnHref", exactReturn);
-      localStorage.setItem("platicaLane", "phone");
-      localStorage.setItem("inglesyaLane", "phone");
-
       goTo("../lagente.html?return=phone&lesson=" + encodeURIComponent(lesson));
+    },
+
+    goback(){
+      actions.openLaGente();
+    },
+
+    lagente(){
+      actions.openLaGente();
     },
 
     translate(){
@@ -1238,6 +1040,7 @@ function closeContactOverlay(){
       const player = document.getElementById("player");
       if (!player) return;
 
+      // Shared group folder is one level above this conductor.
       player.src = `../group/lesson${lesson}/translation/a1.m4a`;
       player.currentTime = 0;
       player.play().catch(err => console.log("translation play failed:", err));
@@ -1249,7 +1052,7 @@ function closeContactOverlay(){
     if (!button) return;
 
     ev.preventDefault();
-    ev.stopPropagation();
+    ev.stopPropagation(); // keeps button clicks from being treated like tile clicks
 
     const action = actions[button.dataset.btn];
     if (action) action();
@@ -1257,32 +1060,105 @@ function closeContactOverlay(){
 })();
 </script>
 
+<script>
+
+console.log("Lesson:", lesson);
+console.log("Tense:", tense);
+</script>
+
+
 
 
 <script>
 // ----- Conductor preparation pause -----
 // The lesson select page only chooses the lesson. The visible pause/credits overlay
-// now belongs here, where the lesson itself is being prepared.
+// belongs here in conductor.html, where the lesson itself is being prepared.
 (function(){
-  const minimumPauseMs = 2000;
-  const startedAt = Date.now();
+  const MINIMUM_PREP_DELAY_MS = 2000;
+  let prepTimer = null;
 
-  function closePrepOverlay(){
-    const overlay = document.getElementById("prepOverlay");
-    if (overlay) overlay.classList.add("done");
+  function overlay(){
+    return document.getElementById("prepOverlay");
   }
 
-  function finishAfterMinimumPause(){
-    const elapsed = Date.now() - startedAt;
-    const remaining = Math.max(0, minimumPauseMs - elapsed);
-    window.setTimeout(closePrepOverlay, remaining);
+  function showPrepOverlay(){
+    const box = overlay();
+    if (box) box.classList.remove("done");
+  }
+
+  function closePrepOverlay(){
+    const box = overlay();
+    if (box) box.classList.add("done");
+  }
+
+  function runPrepPause(){
+    showPrepOverlay();
+    window.clearTimeout(prepTimer);
+    prepTimer = window.setTimeout(closePrepOverlay, MINIMUM_PREP_DELAY_MS);
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", finishAfterMinimumPause, { once:true });
+    document.addEventListener("DOMContentLoaded", runPrepPause, { once:true });
   } else {
-    finishAfterMinimumPause();
+    runPrepPause();
   }
+
+  // If the browser restores this page from its back/forward memory,
+  // make the overlay behavior reliable again instead of leaving an old hidden state.
+  window.addEventListener("pageshow", function(ev){
+    if (ev.persisted) runPrepPause();
+  });
+})();
+</script>
+
+
+<script>
+// ----- Right-click magnifier -----
+// Right-click any lesson picture to enlarge it.
+// The red X in the upper-right closes the enlarged view.
+(function(){
+  const overlay = document.getElementById("imageMagnifierOverlay");
+  const magnifiedImage = document.getElementById("imageMagnifierImage");
+  const closeButton = document.getElementById("imageMagnifierClose");
+
+  if (!overlay || !magnifiedImage || !closeButton) return;
+
+  function openMagnifier(sourceImage){
+    const src = sourceImage.currentSrc || sourceImage.src;
+    if (!src) return;
+
+    magnifiedImage.src = src;
+    magnifiedImage.alt = sourceImage.alt || "Magnified image";
+    overlay.hidden = false;
+  }
+
+  function closeMagnifier(){
+    overlay.hidden = true;
+    magnifiedImage.removeAttribute("src");
+  }
+
+  document.addEventListener("contextmenu", function(ev){
+    const sourceImage = ev.target.closest(".tile img");
+    if (!sourceImage) return;
+
+    ev.preventDefault();
+    ev.stopPropagation();
+    openMagnifier(sourceImage);
+  });
+
+  closeButton.addEventListener("click", function(ev){
+    ev.preventDefault();
+    ev.stopPropagation();
+    closeMagnifier();
+  });
+
+  // Only the red X button closes the magnified image.
+  // Clicking outside the image no longer closes it.
+  document.addEventListener("keydown", function(ev){
+    if (ev.key === "Escape" && !overlay.hidden) {
+      closeMagnifier();
+    }
+  });
 })();
 </script>
 

@@ -5,60 +5,97 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>The People (La Gente)</title>
   <style>
-    * {
-      font-size: 1.2rem;
-      font-weight: bold;
-    }
+    * { box-sizing: border-box; }
 
-    body {
+    html, body {
       margin: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      min-height: 100%;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #ffffff;
+      color: #222;
       overflow-x: hidden;
     }
 
-    .box {
-      position: absolute;
-      border-radius: 20px;
-      overflow: hidden;
-      transition: box-shadow 0.2s ease, outline 0.2s ease;
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
     }
 
-    .box.selected {
-      outline: 3px solid gold;
-      z-index: 9999;
+    .people-stage {
+      width: min(100vw, 760px);
+      min-height: 100vh;
+      padding: 6vh 2vw 96px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8vh;
+    }
+
+    .people-row {
+      width: 100%;
+      display: grid;
+      gap: 2vw;
+      justify-items: center;
+      align-items: center;
+    }
+
+    .people-row.top-row {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      width: 78%;
+    }
+
+    .people-row.bottom-row {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      width: 96%;
+    }
+
+    .box {
+      width: min(22vw, 150px);
+      height: min(22vw, 150px);
+      border-radius: 20px;
+      overflow: hidden;
+      background: #f9fafb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
     }
 
     .box img {
       width: 100%;
       height: 100%;
       object-fit: contain;
-      transition: none !important;
-      transform: none !important;
+      display: block;
     }
 
-    .button-bar {
-      position: absolute;
-      bottom: 0;
+    .box:focus {
+      outline: 3px solid gold;
+      outline-offset: 3px;
+    }
+
+    .missing {
       width: 100%;
+      height: 100%;
+      padding: 8px;
+      color: #8b0000;
+      font: bold 12px/1.2 Arial, sans-serif;
+      text-align: center;
+      background: #fff4f4;
+      border: 1px solid #cc7777;
+      border-radius: 12px;
       display: flex;
+      align-items: center;
       justify-content: center;
-      gap: 10px;
-      padding: 10px;
-      background-color: rgba(0, 0, 0, 0.5);
+      flex-direction: column;
     }
 
-    .rounded-box {
-      width: 300px;
-      padding: 20px;
-      background-color: #f0f0f0;
-      border-radius: 20px;
-      box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
-      font-family: sans-serif;
-    }
-
-    button {
+    .continue-button {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
       font-size: 18px;
       background-color: #007BFF;
       color: white;
@@ -67,35 +104,58 @@
       cursor: pointer;
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
       padding: 10px 20px;
+      z-index: 50;
+    }
+
+    @media (max-width: 700px) {
+      .people-stage {
+        width: 100vw;
+        padding: 7vh 2vw 88px;
+        gap: 7vh;
+      }
+
+      .people-row.top-row {
+        width: 78vw;
+        gap: 2vw;
+      }
+
+      .people-row.bottom-row {
+        width: 96vw;
+        gap: 2vw;
+      }
+
+      .box {
+        width: 22vw;
+        height: 22vw;
+        border-radius: 14px;
+      }
+
+      .missing {
+        font-size: 10px;
+      }
     }
   </style>
 </head>
 <body>
+  <main class="people-stage" aria-label="The People">
+    <section class="people-row top-row" aria-label="People row one">
+      <div id="box1" class="box"><img src="./characters/images/p1.jpg" alt="1"></div>
+      <div id="box2" class="box"><img src="./characters/images/p2.jpg" alt="2"></div>
+      <div id="box3" class="box"><img src="./characters/images/p3.jpg" alt="3"></div>
+    </section>
 
-  <!-- 7 interactive boxes with images -->
-  <div id="box1" class="box" style="top: 8vh; left: 12vw; width: 24vh; height: 24vh;"><img src="./characters/images/p1.png" alt="2"></div>
-  <div id="box2" class="box" style="top: 8vh; left: 37vw; width: 24vh; height: 24vh;"><img src="./characters/images/p2.png" alt="2"></div>
-  <div id="box3" class="box" style="top: 8vh; left: 58vw; width: 24vh; height: 24vh;"><img src="./characters/images/p3.png" alt="3"></div>
-  <div id="box4" class="box" style="top: 8vh; left: 75vw; width: 24vh; height: 24vh;"><img src="./characters/images/p4.png" alt="4"></div>
-  <div id="box5" class="box" style="top: 49vh; left: 12vw; width: 24vh; height: 24vh;"><img src="./characters/images/p5.png" alt="5"></div>
-  <div id="box6" class="box" style="top: 49vh; left: 37vw; width: 24vh; height: 24vh;"><img src="./characters/images/p6.png" alt="6"></div>
-  <div id="box7" class="box" style="top: 49vh; left: 58vw; width: 24vh; height: 24vh;"><img src="./characters/images/p7.png" alt="7"></div>
-  
+    <section class="people-row bottom-row" aria-label="People row two">
+      <div id="box4" class="box"><img src="./characters/images/p4.jpg" alt="4"></div>
+      <div id="box5" class="box"><img src="./characters/images/p5.jpg" alt="5"></div>
+      <div id="box6" class="box"><img src="./characters/images/p6.jpg" alt="6"></div>
+      <div id="box7" class="box"><img src="./characters/images/p7.jpg" alt="7"></div>
+    </section>
+  </main>
 
-  <!-- Return button (English) -->
-  <div style="text-align: center; margin-top: 10px;">
-    <button onclick="returnToConductor()" style="position:absolute;top:83vh;">
-      Continuar
-    </button>
-  </div>
-
+  <button class="continue-button" type="button" onclick="returnToConductor()">Continuar</button>
   <audio id="player"></audio>
 
 <script>
-  // La Gente has two different jobs:
-  // 1) Normal lesson use: return to the exact conductor page that opened La Gente.
-  // 2) First-time use: carry the welcome-page instruction to structure.html,
-  //    so structure prepares Level 1 and skips lessonselect.html.
   function getSavedLessonNumber() {
     const params = new URLSearchParams(window.location.search);
     const rawLesson =
@@ -112,6 +172,17 @@
     return Number.isFinite(n) && n > 0 ? String(n) : "1";
   }
 
+  function getLane(params) {
+    const rawLane =
+      params.get("return") ||
+      params.get("lane") ||
+      sessionStorage.getItem("inglesyaLane") ||
+      localStorage.getItem("inglesyaLane") ||
+      (window.innerWidth < 700 ? "phone" : "desktop");
+
+    return rawLane === "phone" ? "phone" : "desktop";
+  }
+
   function isFirstTimeStart(params) {
     return params.get("firstTime") === "1" ||
       params.get("autoStartLevel1") === "1" ||
@@ -121,56 +192,30 @@
       localStorage.getItem("autoStartLevel1") === "yes";
   }
 
-  function getLane(params) {
-    const rawLane =
-      params.get("lane") ||
-      sessionStorage.getItem("inglesyaLane") ||
-      localStorage.getItem("inglesyaLane") ||
-      sessionStorage.getItem("platicaLane") ||
-      localStorage.getItem("platicaLane") ||
-      (window.innerWidth < 700 ? "phone" : "desktop");
-
-    return rawLane === "phone" ? "phone" : "desktop";
-  }
-
   function storeLessonOneForFirstTime(lane) {
-    const lesson = "1";
-
-    // First-time path must not use an old conductor return address.
-    sessionStorage.removeItem("lagenteReturnHref");
-    localStorage.removeItem("lagenteReturnHref");
-
     sessionStorage.setItem("firstTimeStart", "yes");
     sessionStorage.setItem("autoStartLevel1", "yes");
-    sessionStorage.setItem("lesson", lesson);
-    sessionStorage.setItem("selectedLesson", lesson);
-    sessionStorage.setItem("currentLesson", lesson);
+    sessionStorage.setItem("lesson", "1");
+    sessionStorage.setItem("selectedLesson", "1");
+    sessionStorage.setItem("currentLesson", "1");
     sessionStorage.setItem("inglesyaLane", lane);
 
     localStorage.setItem("firstTimeStart", "yes");
     localStorage.setItem("autoStartLevel1", "yes");
-    localStorage.setItem("lesson", lesson);
-    localStorage.setItem("selectedLesson", lesson);
-    localStorage.setItem("currentLesson", lesson);
+    localStorage.setItem("lesson", "1");
+    localStorage.setItem("selectedLesson", "1");
+    localStorage.setItem("currentLesson", "1");
     localStorage.setItem("inglesyaLane", lane);
-  }
-
-  function goToFirstTimeStructure(params) {
-    const lane = getLane(params);
-    storeLessonOneForFirstTime(lane);
-
-    const structurePath = lane === "phone"
-      ? "./ingles_phone/structure.html"
-      : "./ingles_desktop/structure.html";
-
-    window.location.href = structurePath + "?autoStartLevel1=1&lesson=1";
   }
 
   function returnToConductor() {
     const params = new URLSearchParams(window.location.search);
+    const lane = getLane(params);
 
     if (isFirstTimeStart(params)) {
-      goToFirstTimeStructure(params);
+      storeLessonOneForFirstTime(lane);
+      const structurePath = lane === "phone" ? "./ingles_phone/structure.html" : "./ingles_desktop/structure.html";
+      window.location.href = structurePath + "?autoStartLevel1=1&lesson=1";
       return;
     }
 
@@ -179,79 +224,47 @@
     sessionStorage.setItem("lesson", lesson);
     sessionStorage.setItem("selectedLesson", lesson);
     sessionStorage.setItem("currentLesson", lesson);
+    sessionStorage.setItem("inglesyaLane", lane);
+
     localStorage.setItem("lesson", lesson);
     localStorage.setItem("selectedLesson", lesson);
     localStorage.setItem("currentLesson", lesson);
+    localStorage.setItem("inglesyaLane", lane);
 
-    // Best path: return to the exact conductor page that opened La Gente.
-    // This avoids guessing folder names.
-    const exactReturn =
-      params.get("returnHref") ||
-      sessionStorage.getItem("lagenteReturnHref") ||
-      localStorage.getItem("lagenteReturnHref");
-
-    if (exactReturn) {
-      try {
-        const url = new URL(exactReturn, window.location.href);
-        url.searchParams.set("lesson", lesson);
-        url.searchParams.set("prep", Date.now());
-        window.location.href = url.href;
-        return;
-      } catch (e) {
-        console.log("Could not use exact La Gente return path:", e);
-      }
-    }
-
-    // Emergency fallback only. Normal conductor use should use exactReturn above.
-    const requestedReturn = params.get("return") || localStorage.getItem("platicaLane") || localStorage.getItem("inglesyaLane") || "desktop";
-    const conductorPath = requestedReturn === "phone"
-      ? "./platicaphone/conductor.html"
-      : "./platicadesktop/conductor.html";
-
+    const conductorPath = lane === "phone" ? "./ingles_phone/conductor.html" : "./ingles_desktop/conductor.html";
     window.location.href = conductorPath + "?lesson=" + encodeURIComponent(lesson) + "&prep=" + Date.now();
   }
 </script>
 
 <script>
-  const AUDIO_BASE = './characters/audio/';
+  const AUDIO_BASE = "./characters/audio/";
 
   function playAny(n) {
-    const files = [
-      `${AUDIO_BASE}a${n}.m4a`,  // preferred lowercase extension
-      `${AUDIO_BASE}${n}.mp3`,  // fallback
-      `${AUDIO_BASE}${n}.wav`   // optional extra fallback
-    ];
-
-    let i = 0;
-    let a = new Audio(files[i]);
-
-    a.onerror = () => {
-      i++;
-      if (i < files.length) {
-        a = new Audio(files[i]);  // recreate with next file
-        a.play().catch(() => {});
-      }
-    };
-
+    const a = new Audio(`${AUDIO_BASE}a${n}.m4a`);
     a.play().catch(() => {});
   }
 
-  // Wire boxes 1–10 → play 1–10 from folder
   for (let n = 1; n <= 7; n++) {
-    const el = document.getElementById('box' + n);
+    const el = document.getElementById("box" + n);
     if (!el) continue;
-    el.style.cursor = 'pointer';
-    el.setAttribute('role', 'button');
-    el.setAttribute('tabindex', '0');
-    el.addEventListener('click', () => playAny(n));
-    el.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
+
+    const img = el.querySelector("img");
+    if (img) {
+      img.onerror = () => {
+        el.innerHTML = `<div class="missing">could not find<br>characters/images/p${n}.jpg</div>`;
+      };
+    }
+
+    el.setAttribute("role", "button");
+    el.setAttribute("tabindex", "0");
+    el.addEventListener("click", () => playAny(n));
+    el.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         playAny(n);
       }
     });
   }
 </script>
-  
 </body>
 </html>

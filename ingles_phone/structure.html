@@ -1,134 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>InglesYa Phone Structure</title>
 <style>
-  * { box-sizing: border-box; }
-
-  html, body {
-    margin: 0;
-    min-height: 100%;
-    font-family: Arial, Helvetica, sans-serif;
-    background: #f4f5f7;
-    color: #222;
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:Arial, Helvetica, sans-serif;
+    background:#ffffff;
+    color:#222;
   }
-
-  body {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .message {
-    width: min(90vw, 360px);
-    background: white;
-    border: 1px solid #d7dbe3;
-    border-radius: 14px;
-    padding: 18px;
-    text-align: center;
-    box-shadow: 0 4px 16px rgba(0,0,0,.12);
+  .message{
+    width:min(92vw,420px);
+    border:1px solid #d0d0d0;
+    border-radius:14px;
+    padding:18px;
+    text-align:center;
+    box-shadow:0 4px 14px rgba(0,0,0,.12);
   }
 </style>
 </head>
 <body>
-  <main class="message">
-    Preparing the phone lesson layout...
-  </main>
+  <div class="message">Preparing the phone structure...</div>
 
 <script>
-  // PHONE STRUCTURE BUILDER
-  // This page prepares the phone layout data, then sends the learner
-  // to lessonselect.html.
-  //
-  // Phone layout intention:
-  //   - preserve the same slot IDs and slot order
-  //   - preserve the 7 pronoun frames, 10 object frames, and 2 expression frames
-  //   - use the compact 3-4-3-4-3 visual row plan
-  //   - request approximately 20% larger frames
-  //   - request very small row gaps so the four-frame rows can nearly touch
-  //
-  // conductor.html is not changed by this file. If conductor.html reads the
-  // layoutConfig item below, it will receive the new phone layout instructions.
-  // If conductor.html has hard-coded frame CSS, that CSS will still control the
-  // final size and position.
-  window.addEventListener("DOMContentLoaded", function () {
-    const pronounSlots = [];
-    for (let i = 1; i <= 7; i++) {
-      pronounSlots.push({ id: i, kind: "main" });
-    }
+(function(){
+  // This page defines the phone frame stations. The phone conductor reads
+  // stationStorage and renders exactly these stations.
+  // Layout: 3 pronouns, 4 pronouns, 3 objects, 4 objects, 3 objects, 2 circles.
+  const phoneStructure = {
+    version: "sps-phone-clean-3-4-3-4-3-plus-2-circles-20260624",
+    layoutName: "3-4-3-4-3 + 2 circle frames",
+    gridColumns: 8,
+    rows: [3, 4, 3, 4, 3, 2],
+    expressionPronounIds: [8, 9],
+    stations: [
+      { station:"station-01", group:"pronouns", id:1, row:1, gridColumn:"2 / span 2", shape:"rectangle", kind:"main" },
+      { station:"station-02", group:"pronouns", id:2, row:1, gridColumn:"4 / span 2", shape:"rectangle", kind:"main" },
+      { station:"station-03", group:"pronouns", id:3, row:1, gridColumn:"6 / span 2", shape:"rectangle", kind:"main" },
 
-    const objectSlots = [];
-    for (let i = 1; i <= 10; i++) {
-      objectSlots.push({ id: i });
-    }
+      { station:"station-04", group:"pronouns", id:4, row:2, gridColumn:"1 / span 2", shape:"rectangle", kind:"main" },
+      { station:"station-05", group:"pronouns", id:5, row:2, gridColumn:"3 / span 2", shape:"rectangle", kind:"main" },
+      { station:"station-06", group:"pronouns", id:6, row:2, gridColumn:"5 / span 2", shape:"rectangle", kind:"main" },
+      { station:"station-07", group:"pronouns", id:7, row:2, gridColumn:"7 / span 2", shape:"rectangle", kind:"main" },
 
-    const expressionSlots = [{ id: 8 }, { id: 9 }];
+      { station:"station-08", group:"objects",  id:1,  row:3, gridColumn:"2 / span 2", shape:"rectangle" },
+      { station:"station-09", group:"objects",  id:2,  row:3, gridColumn:"4 / span 2", shape:"rectangle" },
+      { station:"station-10", group:"objects",  id:3,  row:3, gridColumn:"6 / span 2", shape:"rectangle" },
 
-    const phoneLayoutConfig = {
-      layoutName: "phone-3-4-3-4-3-larger-frames",
-      frameScale: 1.44,
-      rowGapPx: 0,
-      columnGapPx: 2,
-      allowFourFrameRowsToNearlyTouch: true,
-      preventScrolling: true,
-      preserveFrameOrder: true,
-      rows: [
-        { group: "pronouns", ids: [1, 2, 3] },
-        { group: "pronouns", ids: [4, 5, 6, 7] },
-        { group: "objects",  ids: [1, 2, 3] },
-        { group: "objects",  ids: [4, 5, 6, 7] },
-        { group: "objects",  ids: [8, 9, 10] },
-        { group: "expressions", ids: [8, 9] }
-      ],
-      notes: "Increase frame dimensions by 20%; reduce row gap to 2-4px; reposition bottom rows upward as space allows without scrolling."
-    };
+      { station:"station-11", group:"objects",  id:4,  row:4, gridColumn:"1 / span 2", shape:"rectangle" },
+      { station:"station-12", group:"objects",  id:5,  row:4, gridColumn:"3 / span 2", shape:"rectangle" },
+      { station:"station-13", group:"objects",  id:6,  row:4, gridColumn:"5 / span 2", shape:"rectangle" },
+      { station:"station-14", group:"objects",  id:7,  row:4, gridColumn:"7 / span 2", shape:"rectangle" },
 
-    sessionStorage.setItem("pronounSlots", JSON.stringify(pronounSlots));
-    sessionStorage.setItem("objectSlots", JSON.stringify(objectSlots));
-    sessionStorage.setItem("expressionSlots", JSON.stringify(expressionSlots));
-    sessionStorage.setItem("expressionPronounIds", JSON.stringify([8, 9]));
-    sessionStorage.setItem("phoneLayoutConfig", JSON.stringify(phoneLayoutConfig));
+      { station:"station-15", group:"objects",  id:8,  row:5, gridColumn:"2 / span 2", shape:"rectangle" },
+      { station:"station-16", group:"objects",  id:9,  row:5, gridColumn:"4 / span 2", shape:"rectangle" },
+      { station:"station-17", group:"objects",  id:10, row:5, gridColumn:"6 / span 2", shape:"rectangle" },
 
-    if (!sessionStorage.getItem("tense")) {
-      sessionStorage.setItem("tense", "now");
-    }
+      { station:"station-18", group:"pronouns", id:8, row:6, gridColumn:"3 / span 2", shape:"circle", kind:"expression" },
+      { station:"station-19", group:"pronouns", id:9, row:6, gridColumn:"5 / span 2", shape:"circle", kind:"expression" }
+    ]
+  };
 
-    const params = new URLSearchParams(window.location.search);
-    const shouldAutoStartLevel1 =
-      params.get("autoStartLevel1") === "1" ||
-      sessionStorage.getItem("autoStartLevel1") === "yes" ||
-      sessionStorage.getItem("firstTimeStart") === "yes" ||
-      localStorage.getItem("autoStartLevel1") === "yes" ||
-      localStorage.getItem("firstTimeStart") === "yes";
+  // Compatibility storage for any older desktop/V2 logic that looks for slots.
+  const pronounSlots = [];
+  for (let i = 1; i <= 9; i++) pronounSlots.push({ id: i, kind: i <= 7 ? "main" : "expression" });
+  const objectSlots = [];
+  for (let i = 1; i <= 10; i++) objectSlots.push({ id: i });
 
-    if (shouldAutoStartLevel1) {
-      sessionStorage.setItem("lesson", "1");
-      sessionStorage.setItem("selectedLesson", "1");
-      sessionStorage.setItem("currentLesson", "1");
-      localStorage.setItem("lesson", "1");
-      localStorage.setItem("selectedLesson", "1");
-      localStorage.setItem("currentLesson", "1");
+  sessionStorage.setItem("stationStorage", JSON.stringify(phoneStructure));
+  sessionStorage.setItem("pronounSlots", JSON.stringify(pronounSlots));
+  sessionStorage.setItem("objectSlots", JSON.stringify(objectSlots));
+  sessionStorage.setItem("expressionSlots", JSON.stringify([{ id:8 }, { id:9 }]));
+  sessionStorage.setItem("expressionPronounIds", JSON.stringify(phoneStructure.expressionPronounIds));
+  sessionStorage.setItem("inglesyaStructureReady", "true");
+  sessionStorage.setItem("inglesyaLane", "phone");
+  localStorage.setItem("inglesyaLane", "phone");
 
-      // Use this instruction once. After conductor opens, normal lesson buttons
-      // should behave normally.
-      sessionStorage.removeItem("autoStartLevel1");
-      sessionStorage.removeItem("firstTimeStart");
-      localStorage.removeItem("autoStartLevel1");
-      localStorage.removeItem("firstTimeStart");
+  if (!sessionStorage.getItem("tense")) sessionStorage.setItem("tense", "now");
 
-      window.location.replace("conductor.html?lesson=1&prep=" + Date.now());
-      return;
-    }
+  const params = new URLSearchParams(window.location.search);
+  const shouldAutoStartLevel1 =
+    params.get("autoStartLevel1") === "1" ||
+    sessionStorage.getItem("autoStartLevel1") === "yes" ||
+    sessionStorage.getItem("firstTimeStart") === "yes" ||
+    localStorage.getItem("autoStartLevel1") === "yes" ||
+    localStorage.getItem("firstTimeStart") === "yes";
 
-    if (!sessionStorage.getItem("lesson") && !sessionStorage.getItem("selectedLesson")) {
-      sessionStorage.setItem("lesson", "1");
-      sessionStorage.setItem("selectedLesson", "1");
-    }
+  if (shouldAutoStartLevel1) {
+    sessionStorage.setItem("lesson", "1");
+    sessionStorage.setItem("selectedLesson", "1");
+    sessionStorage.setItem("currentLesson", "1");
+    localStorage.setItem("lesson", "1");
+    localStorage.setItem("selectedLesson", "1");
+    localStorage.setItem("currentLesson", "1");
+    sessionStorage.removeItem("autoStartLevel1");
+    sessionStorage.removeItem("firstTimeStart");
+    localStorage.removeItem("autoStartLevel1");
+    localStorage.removeItem("firstTimeStart");
+    window.location.replace("conductor.html?lesson=1&prep=" + Date.now());
+    return;
+  }
 
-    window.location.replace("lessonselect.html");
-  });
+  if (!sessionStorage.getItem("lesson") && !sessionStorage.getItem("selectedLesson")) {
+    sessionStorage.setItem("lesson", "1");
+    sessionStorage.setItem("selectedLesson", "1");
+  }
+
+  window.location.replace("lessonselect.html");
+})();
 </script>
 </body>
 </html>

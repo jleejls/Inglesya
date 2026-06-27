@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -59,95 +59,78 @@
     pointer-events:none;
   }
 
-  /* Three columns: objects left, pronouns center, objects right */
-  .director-grid{
+  /* Phone station stage: row counts come from structure.html stationStorage.
+     8 narrow grid tracks let 3-frame rows center above 4-frame rows. */
+  main{
+    max-width:560px;
+    margin:0 auto;
+    padding:14px 8px calc(var(--trigger-bar-height) + 18px);
+  }
+
+  .station-grid{
     display:grid;
-    grid-template-columns:minmax(0,.8fr) minmax(0,1.4fr) minmax(0,.8fr);
-    gap:6px;
-    align-items:flex-start;
-  }
-  .director-column{
-    min-width:0;
-  }
-
-  @media (max-width:900px){
-    .director-grid{
-      grid-template-columns:1fr;
-    }
+    grid-template-columns:repeat(8, minmax(0, 1fr));
+    gap:5px;
+    width:min(100%,520px);
+    margin:0 auto;
+    align-items:center;
   }
 
-  /* Pronoun area: 3x3 grid */
-  .pronoun-grid{
-    display:grid;
-    grid-template-columns:repeat(3,minmax(0,1fr));
-    gap:3px;
+  .station-error{
+    width:min(92vw,520px);
+    margin:40px auto;
+    padding:18px;
+    border:2px solid #b00020;
+    border-radius:12px;
+    background:#fff4f4;
+    color:#4d0000;
+    font:16px/1.35 Arial, Helvetica, sans-serif;
+    text-align:center;
   }
 
-  /* Object columns: 5 vertical tiles each */
-  .object-col{
-    display:flex;
-    flex-direction:column;
-    gap:3px;
-  }
-
-/* Make object pictures visually larger */
-.object-slot {
-  overflow: hidden;
-}
-
-.object-slot img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  transform: scale(1.35);
-}
-
-.tile{
+  .tile{
     position:relative;
     border:1px solid #d7dbe3;
-    border-radius:10px;
-    overflow:visible;
+    border-radius:8px;
+    overflow:hidden;
     cursor:pointer;
     background:#f9fafb;
     aspect-ratio:1/1;
-    max-height:150px;
     display:flex;
     align-items:center;
     justify-content:center;
-}
+  }
 
-/* shrink ONLY object slots */
-#objLeft .tile,
-#objRight .tile {
-    max-height:105px;
-    aspect-ratio:1/1;
+  .tile[data-shape="circle"]{
+    border-radius:50%;
     overflow:hidden;
-}
+  }
 
-#objLeft .tile img,
-#objRight .tile img {
-    width:100%;
-    height:100%;
-    max-width:none;
-    max-height:none;
+  .tile[data-shape="circle"] img{
+    border-radius:50%;
+    width:82%;
+    height:82%;
+  }
+
+  .tile[data-shape="circle"].speaking{
+    outline:4px solid #c00000;
+    outline-offset:3px;
+    box-shadow:0 0 0 5px rgba(192,0,0,.16), 0 2px 8px rgba(0,0,0,.18);
+  }
+
+  .tile[data-group="objects"] img{
+    width:92%;
+    height:92%;
     object-fit:contain;
-    transform:scale(1.45);
-}
+    display:block;
+  }
 
-/* your existing img rules can stay as they are */
-.tile img{
+  .tile[data-group="pronouns"] img{
     width:100%;
     height:100%;
     object-fit:contain;
     display:block;
-}
-
-#objLeft .tile img,
-#objRight .tile img {
-    max-width:60%;
-    max-height:60%;
-}
-
+  }
 
 
   .label{
@@ -159,27 +142,6 @@
   }
 
 
-
-/* Make desktop pronoun expression frames P8 and P9 round */
-#pronouns .tile[data-index="8"],
-#pronouns .tile[data-index="9"] {
-    border-radius:50%;
-    overflow:hidden;
-}
-
-#pronouns .tile[data-index="8"] img,
-#pronouns .tile[data-index="9"] img {
-    border-radius:50%;
-    width:75%;
-    height:75%;
-}
-
-#pronouns .tile[data-index="8"].speaking,
-#pronouns .tile[data-index="9"].speaking {
-    outline:4px solid #c00000;
-    outline-offset:3px;
-    box-shadow:0 0 0 5px rgba(192,0,0,.16), 0 2px 8px rgba(0,0,0,.18);
-}
 
   /* Bottom image buttons copied from the button-study essence */
   .zipbutton{
@@ -364,12 +326,134 @@
     }
   }
 
+
+  /* Right-click image magnifier */
+  .image-magnifier-overlay{
+    position:fixed;
+    inset:0;
+    z-index:10000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,0.72);
+    padding:36px;
+  }
+
+  .image-magnifier-overlay[hidden]{
+    display:none;
+  }
+
+  .image-magnifier-frame{
+    position:relative;
+    max-width:96vw;
+    max-height:96vh;
+    overflow:auto;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+
+  .image-magnifier-frame img{
+    display:block;
+    max-width:88vw;
+    max-height:88vh;
+    object-fit:contain;
+    transform:scale(1.15);
+    transform-origin:center center;
+  }
+
+  .image-magnifier-close{
+    position:absolute;
+    top:8px;
+    right:8px;
+    z-index:10001;
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    border:3px solid #ffffff;
+    background:#d00000;
+    color:#ffffff;
+    font:bold 26px/1 Arial, Helvetica, sans-serif;
+    cursor:pointer;
+    box-shadow:0 2px 10px rgba(0,0,0,0.35);
+  }
+
+  .image-magnifier-close:hover{
+    background:#ff0000;
+  }
+
+
+  /* Phone station layout: 3-4-3-4-3 + 2 circles from stationStorage. */
+  @media (max-width:700px){
+    html, body{
+      overflow-x:hidden;
+    }
+
+    main{
+      max-width:100vw;
+      padding:8px 6px calc(var(--trigger-bar-height) + 18px);
+    }
+
+    .lesson-number-badge{
+      top:5px;
+      right:6px;
+      width:30px;
+      height:30px;
+      font-size:14px;
+      z-index:80;
+    }
+
+    .station-grid{
+      width:100%;
+      max-width:520px;
+      gap:4px;
+    }
+
+    .tile{
+      width:100%;
+      min-height:0;
+      aspect-ratio:1/1;
+      border-radius:7px;
+    }
+
+    .tile[data-shape="circle"]{
+      border-radius:50%;
+    }
+
+    .tile[data-shape="circle"] img{
+      border-radius:50%;
+      width:82%;
+      height:82%;
+    }
+
+    .zipbutton{
+      bottom:5px;
+      width:calc(100vw - 8px);
+      max-width:520px;
+      gap:3px;
+      padding:4px;
+      justify-content:space-between;
+    }
+
+    .buttonz{
+      width:11.5vw;
+      height:42px;
+      min-width:36px;
+      min-height:34px;
+      border-radius:8px;
+    }
+  }
+
+
 </style>
 <script>
 // ----- Conductor startup -----
 // Accept the lesson number no matter which earlier page stored it.
 (function () {
+  const urlLesson = new URLSearchParams(window.location.search).get("lesson");
   const storedLesson =
+    urlLesson ||
     sessionStorage.getItem("selectedLesson") ||
     sessionStorage.getItem("lesson") ||
     sessionStorage.getItem("currentLesson") ||
@@ -399,6 +483,15 @@ for (let i = 0; i < sessionStorage.length; i++) {
 </head>
 <body>
 
+
+<div id="imageMagnifierOverlay" class="image-magnifier-overlay" hidden aria-label="Magnified image viewer">
+  <div class="image-magnifier-frame">
+    <button id="imageMagnifierClose" class="image-magnifier-close" type="button" aria-label="Close magnified image">×</button>
+    <img id="imageMagnifierImage" alt="Magnified image">
+  </div>
+</div>
+
+
 <div id="prepOverlay" class="prep-overlay" aria-live="polite" aria-label="Lesson preparation message">
   <div class="prep-card">
     <div class="prep-spinner" aria-hidden="true"></div>
@@ -406,14 +499,14 @@ for (let i = 0; i < sessionStorage.length; i++) {
     <p class="prep-credit">Created by Jimmy Self</p>
 
     <div class="prep-credits" aria-label="Credits">
-      <h2>CrÃ©ditos</h2>
+      <h2>Créditos</h2>
       <ul>
         <li><strong>Creador del proyecto:</strong> Jimmy Self</li>
         <li><strong>Ayudante:</strong> AJ Cornell</li>
-        <li><strong>DiseÃ±o y Arte:</strong> JosÃ© GarcÃ­a</li>
-        <li><strong>Visuales:</strong> MarÃ­a Flores</li>
+        <li><strong>Diseño y Arte:</strong> José García</li>
+        <li><strong>Visuales:</strong> María Flores</li>
         <li><strong>Audio:</strong> Jimmy Self</li>
-        <li><strong>Asesor de producciÃ³n:</strong> Prof. Eduardo De LeÃ³n</li>
+        <li><strong>Asesor de producción:</strong> Prof. Eduardo De León</li>
         <li><strong>Actores:</strong> A.J. Cornell, Rachel Cornell</li>
       </ul>
     </div>
@@ -426,49 +519,31 @@ for (let i = 0; i < sessionStorage.length; i++) {
 <header id="banner">Director</header>
 
 <main>
-  <div class="director-grid">
-    <!-- LEFT: objects 1â€“5 -->
-    <section class="director-column">
-      <h3>Objects</h3>
-      <div id="objLeft" class="object-col"></div>
-    </section>
-
-    <!-- CENTER: pronouns 1â€“9 -->
-    <section class="director-column">
-      <h3>Pronouns</h3>
-      <div id="pronouns" class="pronoun-grid"></div>
-    </section>
-
-    <!-- RIGHT: objects 6â€“10 -->
-    <section class="director-column">
-      <h3>&nbsp;</h3>
-      <div id="objRight" class="object-col"></div>
-    </section>
-  </div>
+  <div id="stationGrid" class="station-grid" aria-label="Phone learning stations"></div>
 </main>
 
 <div id="pbar" class="zipbutton" aria-label="Program buttons">
   <div class="buttonz" data-btn="continue" title="Advance to next page">
-  <img src="../trigger/adelante.jpg" alt="Advance">
-</div>
-<div class="buttonz" data-btn="exit" title="Exit"
-     onclick="window.location.assign('../quit.html');">
-  <img src="../trigger/exit.jpg">
-</div>
+    <img src="../trigger/adelante.jpg" alt="Advance">
+  </div>
+  <div class="buttonz" data-btn="exit" title="Exit" onclick="window.location.assign('../quit.html');">
+    <img src="../trigger/exit.jpg" alt="Exit">
+  </div>
   <div class="buttonz" data-btn="choosel" title="Choose lesson">
     <img src="../trigger/choosel.jpg" alt="Choose lesson">
   </div>
   <div class="buttonz" data-btn="help" title="Help / guidelines">
     <img src="../trigger/help.jpg" alt="Help">
   </div>
-  <div class="buttonz" data-btn="email" title="Contact Jimmy Lucky">
-    <img src="../trigger/email.jpg" alt="Email">
-  </div>
   <div class="buttonz" data-btn="donate" title="Donate">
     <img src="../trigger/donate.jpg" alt="Donate">
   </div>
-  <div class="buttonz" data-btn="goback" title="Go back">
-    <img src="../trigger/goback.jpg" alt="Back">
+    <div class="buttonz" data-btn="email" title="Contact Jimmy Lucky">
+    <img src="../trigger/email.jpg" alt="Email">
+  </div>
+  <!-- Button 7: La Gente - use the same clean desktop return pattern as Plática V2 -->
+  <div class="buttonz" data-btn="goback" title="La Gente">
+    <img src="../trigger/lagente.jpg" alt="La Gente">
   </div>
   <div class="buttonz" data-btn="translate" title="Translation">
     <img src="../trigger/translate.jpg" alt="Translate">
@@ -477,41 +552,46 @@ for (let i = 0; i < sessionStorage.length; i++) {
 
 <div id="contactOverlay" class="contact-overlay" hidden>
   <div class="contact-box">
-    <h2>Contact Jimmy Lucky</h2>
-    <p>To contact Jimmy Lucky, please leave this lesson page and open your own email program.</p>
-    <p>You may write in English or Spanish.</p>
-    <p>Send your message to:</p>
+    <h2>Email Contact</h2>
+    <p>Please send your message to:</p>
     <p class="contact-address">spanishsoundbites@gmail.com</p>
-
-    <a href="https://mail.google.com/mail/?view=cm&fs=1&to=spanishsoundbites@gmail.com" target="_blank" rel="noopener">
-      Open Gmail
-    </a>
-
-       <button type="button" onclick="closeContactOverlay()">
-      Go Back
-    </button>
+    <button type="button" onclick="closeContactOverlay()">Close</button>
   </div>
 </div>
 <audio id="player" preload="auto"></audio>
 
 <script>
 (function(){
-  // ----- Layout + selection data from sessionStorage -----
-  const pronounSlots = JSON.parse(sessionStorage.getItem("pronounSlots") || "[]");
-  const objectSlots  = JSON.parse(sessionStorage.getItem("objectSlots")  || "[]");
-  const exprIds      = JSON.parse(sessionStorage.getItem("expressionPronounIds") || "[]");
+  // ----- Layout comes only from stationStorage written by structure.html -----
+  const stationStorageRaw = sessionStorage.getItem("stationStorage");
+  let stationStorage = null;
 
-  // Fallback layout so page still works if nothing was stored
-  if (!pronounSlots.length) {
-    for (let i = 1; i <= 9; i++) {
-      pronounSlots.push({ id: i, kind: i <= 7 ? "main" : "expression" });
+  function showStationStorageError(message){
+    const main = document.querySelector("main");
+    if (main) {
+      main.innerHTML = `<div class="station-error"><strong>Structure error</strong><br>${message}<br><br>Open <strong>structure.html</strong> first so it can place the phone stations into session storage.</div>`;
     }
+    throw new Error(message);
   }
-  if (!objectSlots.length) {
-    for (let i = 1; i <= 10; i++) {
-      objectSlots.push({ id: i, column: i <= 5 ? 1 : 2 });
-    }
+
+  if (!stationStorageRaw) {
+    showStationStorageError("No stationStorage information reached conductor.html.");
   }
+
+  try {
+    stationStorage = JSON.parse(stationStorageRaw);
+  } catch (err) {
+    showStationStorageError("stationStorage exists, but it is not valid JSON.");
+  }
+
+  if (!stationStorage || !Array.isArray(stationStorage.stations) || !stationStorage.stations.length) {
+    showStationStorageError("stationStorage does not contain a usable stations list.");
+  }
+
+  const exprIds = Array.isArray(stationStorage.expressionPronounIds)
+    ? stationStorage.expressionPronounIds.map(Number)
+    : [];
+
   const tense  = sessionStorage.getItem("tense")  || "now";
   let lesson = Number(
     sessionStorage.getItem("lesson") ||
@@ -529,17 +609,31 @@ for (let i = 0; i < sessionStorage.length; i++) {
   if (lessonBadge) lessonBadge.textContent = String(lesson);
 
   // ----- Paths -----
-  // This conductor supports both folder styles:
-  // 1) old split folders: pronouns/images, objects/images, pronouns/audios, objects/audios
-  // 2) newer single folders: image and sound
+  // Stage/JPG version:
+  // Prefer the new split JPG lesson images first. Keep PNG and old single-folder
+  // fallbacks so older backups can still run if they are opened by mistake.
+  // The small cache tag helps phones stop showing stale cached pictures.
+  const ASSET_VERSION = "jpg-stage-20260623";
+  const imgPath = path => `${path}?v=${ASSET_VERSION}`;
+
   const pronImg = i => [
-    `${basePath}/pronouns/images/p${i}.jpg`,
-    `${basePath}/image/p${i + 10}.jpg`,
-    `${basePath}/image/p${i}.jpg`
+    imgPath(`${basePath}/pronouns/images/p${i}.jpg`),
+    imgPath(`${basePath}/pronouns/images/p${i}.jpeg`),
+    imgPath(`${basePath}/pronouns/images/p${i}.jpg`),
+    imgPath(`${basePath}/image/p${i + 10}.jpg`),
+    imgPath(`${basePath}/image/p${i + 10}.jpeg`),
+    imgPath(`${basePath}/image/p${i + 10}.jpg`),
+    imgPath(`${basePath}/image/p${i}.jpg`),
+    imgPath(`${basePath}/image/p${i}.jpeg`),
+    imgPath(`${basePath}/image/p${i}.jpg`)
   ];
   const objImg  = i => [
-    `${basePath}/objects/images/p${i}.jpg`,
-    `${basePath}/image/p${i}.jpg`
+    imgPath(`${basePath}/objects/images/p${i}.jpg`),
+    imgPath(`${basePath}/objects/images/p${i}.jpeg`),
+    imgPath(`${basePath}/objects/images/p${i}.jpg`),
+    imgPath(`${basePath}/image/p${i}.jpg`),
+    imgPath(`${basePath}/image/p${i}.jpeg`),
+    imgPath(`${basePath}/image/p${i}.jpg`)
   ];
   const pronAud = i => [
     `${basePath}/pronouns/audios/a${i}.m4a`,
@@ -554,7 +648,7 @@ for (let i = 0; i < sessionStorage.length; i++) {
 
   // ----- Conversation-circle audio paths -----
   // Francisco uses expression pronoun P8, Rachel uses expression pronoun P9.
-  // These paths are read from the lesson folder; conductor does not create layout values.
+  // These IDs are read from the structure station storage.
   const FRANCISCO_EXPRESSION_ID = exprIds[0] || 8;
   const RACHEL_EXPRESSION_ID = exprIds[1] || 9;
 
@@ -589,12 +683,20 @@ for (let i = 0; i < sessionStorage.length; i++) {
   }
 
   // ----- Tile builder -----
-  function makeTile(srcList, fallbackLabel){
+  function makeTile(srcList, fallbackLabel, station){
     const sources = Array.isArray(srcList) ? srcList : [srcList];
     let srcIndex = 0;
 
     const d = document.createElement("div");
     d.className = "tile";
+    d.dataset.group = station.group;
+    d.dataset.index = String(station.id);
+    d.dataset.station = station.station || "";
+    d.dataset.shape = station.shape || "rectangle";
+    d.dataset.kind = station.kind || "";
+    d.style.gridRow = String(station.row);
+    d.style.gridColumn = station.gridColumn;
+
     const img = document.createElement("img");
     img.alt = fallbackLabel;
 
@@ -612,34 +714,24 @@ for (let i = 0; i < sessionStorage.length; i++) {
     return d;
   }
 
-  // ----- Build pronoun tiles (3Ã—3 grid, ids 1..9) -----
-  const pronMount = document.getElementById("pronouns");
+  // ----- Build tiles exactly from stationStorage -----
+  const stationGrid = document.getElementById("stationGrid");
   const expressionTilesByIndex = {};
-  pronounSlots.forEach(slot => {
-    const t = makeTile(pronImg(slot.id), `p${slot.id}.jpg`);
-    t.dataset.group = "pronouns";
-    t.dataset.index = slot.id;
-    t.dataset.kind  = slot.kind || "main"; // "main" or "expression"
-    if (isExpressionPronoun(slot.id)) {
-      expressionTilesByIndex[slot.id] = t;
+
+  stationStorage.stations.forEach(station => {
+    if (!station || !station.group || !station.id || !station.row || !station.gridColumn) {
+      showStationStorageError("A station entry is incomplete.");
     }
-    pronMount.appendChild(t);
-  });
 
-  // ----- Build object tiles (5 left, 5 right) -----
-  const leftCol  = document.getElementById("objLeft");
-  const rightCol = document.getElementById("objRight");
+    const src = station.group === "pronouns" ? pronImg(Number(station.id)) : objImg(Number(station.id));
+    const prefix = station.group === "pronouns" ? "p" : "p";
+    const tile = makeTile(src, `${prefix}${station.id}.jpg`, station);
 
-  objectSlots.forEach(slot => {
-    const t = makeTile(objImg(slot.id), `p${slot.id}.jpg`);
-    t.dataset.group = "objects";
-    t.dataset.index = slot.id;
-
-    if (slot.column === 1) {
-      leftCol.appendChild(t);
-    } else {
-      rightCol.appendChild(t);
+    if (station.group === "pronouns" && isExpressionPronoun(Number(station.id))) {
+      expressionTilesByIndex[Number(station.id)] = tile;
     }
+
+    stationGrid.appendChild(tile);
   });
 
   // ----- Audio logic: no overlaps, serial uniting -----
@@ -913,8 +1005,9 @@ function closeContactOverlay(){
 
       sessionStorage.setItem("lesson", String(nextLesson));
       sessionStorage.setItem("selectedLesson", String(nextLesson));
+      sessionStorage.setItem("currentLesson", String(nextLesson));
 
-      window.location.href = "conductor.html";
+      window.location.href = "conductor.html?lesson=" + nextLesson + "&prep=" + Date.now();
     },
 
     exit(){
@@ -937,12 +1030,43 @@ function closeContactOverlay(){
       goTo("donate.html");
     },
 
+    // Button 7: La Gente - copied from the working Plática V2 desktop pattern.
+    // The conductor lives in the desktop folder, so La Gente is one level up.
     goback(){
-      if (history.length > 1) {
-        history.back();
-      } else {
-        goTo("index.html");
-      }
+      const lesson = currentLesson();
+      const returnHref = new URL(window.location.href);
+      returnHref.searchParams.set("lesson", String(lesson));
+      returnHref.searchParams.set("prep", Date.now());
+
+      sessionStorage.setItem("lagenteReturnHref", returnHref.href);
+      localStorage.setItem("lagenteReturnHref", returnHref.href);
+
+      localStorage.setItem("inglesyaLane", "desktop");
+      localStorage.setItem("platicaLane", "desktop");
+      localStorage.setItem("lesson", String(lesson));
+      localStorage.setItem("selectedLesson", String(lesson));
+      localStorage.setItem("currentLesson", String(lesson));
+
+      goTo("../lagente.html?return=desktop&lesson=" + encodeURIComponent(lesson) + "&returnHref=" + encodeURIComponent(returnHref.href));
+    },
+
+    // Keep this alias so older button labels still work if one slips through.
+    lagente(){
+      const lesson = currentLesson();
+      const returnHref = new URL(window.location.href);
+      returnHref.searchParams.set("lesson", String(lesson));
+      returnHref.searchParams.set("prep", Date.now());
+
+      sessionStorage.setItem("lagenteReturnHref", returnHref.href);
+      localStorage.setItem("lagenteReturnHref", returnHref.href);
+
+      localStorage.setItem("inglesyaLane", "desktop");
+      localStorage.setItem("platicaLane", "desktop");
+      localStorage.setItem("lesson", String(lesson));
+      localStorage.setItem("selectedLesson", String(lesson));
+      localStorage.setItem("currentLesson", String(lesson));
+
+      goTo("../lagente.html?return=desktop&lesson=" + encodeURIComponent(lesson) + "&returnHref=" + encodeURIComponent(returnHref.href));
     },
 
     translate(){
@@ -982,27 +1106,93 @@ console.log("Tense:", tense);
 <script>
 // ----- Conductor preparation pause -----
 // The lesson select page only chooses the lesson. The visible pause/credits overlay
-// now belongs here, where the lesson itself is being prepared.
+// belongs here in conductor.html, where the lesson itself is being prepared.
 (function(){
-  const minimumPauseMs = 2000;
-  const startedAt = Date.now();
+  const MINIMUM_PREP_DELAY_MS = 2000;
+  let prepTimer = null;
 
-  function closePrepOverlay(){
-    const overlay = document.getElementById("prepOverlay");
-    if (overlay) overlay.classList.add("done");
+  function overlay(){
+    return document.getElementById("prepOverlay");
   }
 
-  function finishAfterMinimumPause(){
-    const elapsed = Date.now() - startedAt;
-    const remaining = Math.max(0, minimumPauseMs - elapsed);
-    window.setTimeout(closePrepOverlay, remaining);
+  function showPrepOverlay(){
+    const box = overlay();
+    if (box) box.classList.remove("done");
+  }
+
+  function closePrepOverlay(){
+    const box = overlay();
+    if (box) box.classList.add("done");
+  }
+
+  function runPrepPause(){
+    showPrepOverlay();
+    window.clearTimeout(prepTimer);
+    prepTimer = window.setTimeout(closePrepOverlay, MINIMUM_PREP_DELAY_MS);
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", finishAfterMinimumPause, { once:true });
+    document.addEventListener("DOMContentLoaded", runPrepPause, { once:true });
   } else {
-    finishAfterMinimumPause();
+    runPrepPause();
   }
+
+  // If the browser restores this page from its back/forward memory,
+  // make the overlay behavior reliable again instead of leaving an old hidden state.
+  window.addEventListener("pageshow", function(ev){
+    if (ev.persisted) runPrepPause();
+  });
+})();
+</script>
+
+
+<script>
+// ----- Right-click magnifier -----
+// Right-click any lesson picture to enlarge it.
+// The red X in the upper-right closes the enlarged view.
+(function(){
+  const overlay = document.getElementById("imageMagnifierOverlay");
+  const magnifiedImage = document.getElementById("imageMagnifierImage");
+  const closeButton = document.getElementById("imageMagnifierClose");
+
+  if (!overlay || !magnifiedImage || !closeButton) return;
+
+  function openMagnifier(sourceImage){
+    const src = sourceImage.currentSrc || sourceImage.src;
+    if (!src) return;
+
+    magnifiedImage.src = src;
+    magnifiedImage.alt = sourceImage.alt || "Magnified image";
+    overlay.hidden = false;
+  }
+
+  function closeMagnifier(){
+    overlay.hidden = true;
+    magnifiedImage.removeAttribute("src");
+  }
+
+  document.addEventListener("contextmenu", function(ev){
+    const sourceImage = ev.target.closest(".tile img");
+    if (!sourceImage) return;
+
+    ev.preventDefault();
+    ev.stopPropagation();
+    openMagnifier(sourceImage);
+  });
+
+  closeButton.addEventListener("click", function(ev){
+    ev.preventDefault();
+    ev.stopPropagation();
+    closeMagnifier();
+  });
+
+  // Only the red X button closes the magnified image.
+  // Clicking outside the image no longer closes it.
+  document.addEventListener("keydown", function(ev){
+    if (ev.key === "Escape" && !overlay.hidden) {
+      closeMagnifier();
+    }
+  });
 })();
 </script>
 
