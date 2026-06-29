@@ -211,7 +211,40 @@
         localStorage.getItem("autoStartLevel1") === "yes" ||
         localStorage.getItem("firstTimeStart") === "yes";
 
+      // Bottom program button structure belongs here, not in conductor.html.
+      // The conductor only reads this storage and renders what this structure page defines.
+      const buttonStorage = {
+        version: "inglesya-desktop-bottom-buttons-20260629",
+        lane: "desktop",
+        bar: { id:"pbar", className:"zipbutton", ariaLabel:"Program buttons" },
+        buttons: [
+        { action:"continue", title:"Advance to next page", image:"../trigger/adelante.jpg", alt:"Advance" },
+        { action:"exit", title:"Exit", image:"../trigger/exit.jpg", alt:"Exit" },
+        { action:"choosel", title:"Choose lesson", image:"../trigger/choosel.jpg", alt:"Choose lesson" },
+        { action:"help", title:"Help / guidelines", image:"../trigger/help.jpg", alt:"Help" },
+        { action:"donate", title:"Donate", image:"../trigger/donate.jpg", alt:"Donate" },
+        { action:"email", title:"Contact Jimmy Lucky", image:"../trigger/email.jpg", alt:"Email" },
+        { action:"goback", title:"La Gente", image:"../trigger/lagente.jpg", alt:"La Gente" },
+        { action:"translate", title:"Translation", image:"../trigger/translate.jpg", alt:"Translate" }
+      ],
+        cssVars: {
+          "--button-bar-bottom": "2vh",
+          "--button-bar-width": "auto",
+          "--button-bar-max-width": "none",
+          "--button-bar-gap": "2vh",
+          "--button-bar-padding": "6px 10px",
+          "--button-bar-justify": "center",
+          "--button-width": "5vw",
+          "--button-height": "5vh",
+          "--button-min-width": "56px",
+          "--button-min-height": "36px",
+          "--button-border-width": "2px",
+          "--button-border-radius": "1vw"
+        }
+      };
+
       sessionStorage.setItem("inglesyaStructureReady", "true");
+      sessionStorage.setItem("buttonStorage", JSON.stringify(buttonStorage));
       sessionStorage.setItem("inglesyaLane", "desktop");
       localStorage.setItem("inglesyaLane", "desktop");
 
