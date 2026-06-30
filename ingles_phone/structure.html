@@ -73,40 +73,7 @@
   const objectSlots = [];
   for (let i = 1; i <= 10; i++) objectSlots.push({ id: i });
 
-  // Bottom program button structure belongs here, not in conductor.html.
-  // The conductor only reads this storage and renders what this structure page defines.
-  const buttonStorage = {
-    version: "inglesya-phone-bottom-buttons-20260629",
-    lane: "phone",
-    bar: { id:"pbar", className:"zipbutton", ariaLabel:"Program buttons" },
-    buttons: [
-      { action:"continue", title:"Advance to next page", image:"../trigger/adelante.jpg", alt:"Advance" },
-      { action:"exit", title:"Exit", image:"../trigger/exit.jpg", alt:"Exit" },
-      { action:"choosel", title:"Choose lesson", image:"../trigger/choosel.jpg", alt:"Choose lesson" },
-      { action:"help", title:"Help / guidelines", image:"../trigger/help.jpg", alt:"Help" },
-      { action:"donate", title:"Donate", image:"../trigger/donate.jpg", alt:"Donate" },
-      { action:"email", title:"Contact Jimmy Lucky", image:"../trigger/email.jpg", alt:"Email" },
-      { action:"goback", title:"La Gente", image:"../trigger/lagente.jpg", alt:"La Gente" },
-      { action:"translate", title:"Translation", image:"../trigger/translate.jpg", alt:"Translate" }
-    ],
-    cssVars: {
-      "--button-bar-bottom": "5px",
-      "--button-bar-width": "calc(100vw - 14px)",
-      "--button-bar-max-width": "500px",
-      "--button-bar-gap": "1px",
-      "--button-bar-padding": "2px",
-      "--button-bar-justify": "space-between",
-      "--button-width": "10.1vw",
-      "--button-height": "37px",
-      "--button-min-width": "0",
-      "--button-min-height": "32px",
-      "--button-border-width": "1px",
-      "--button-border-radius": "8px"
-    }
-  };
-
   sessionStorage.setItem("stationStorage", JSON.stringify(phoneStructure));
-  sessionStorage.setItem("buttonStorage", JSON.stringify(buttonStorage));
   sessionStorage.setItem("pronounSlots", JSON.stringify(pronounSlots));
   sessionStorage.setItem("objectSlots", JSON.stringify(objectSlots));
   sessionStorage.setItem("expressionSlots", JSON.stringify([{ id:8 }, { id:9 }]));

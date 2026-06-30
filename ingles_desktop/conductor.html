@@ -54,7 +54,7 @@
     box-shadow:0 2px 8px rgba(0,0,0,.18);
     display:flex;
     align-items:center;
-    justify-content:var(--button-bar-justify, center);
+    justify-content:center;
     font:bold 18px Arial, Helvetica, sans-serif;
     pointer-events:none;
   }
@@ -187,27 +187,25 @@
     flex-direction:row;
     align-items:center;
     justify-content:center;
-    gap:var(--button-bar-gap, 2vh);
+    gap:2vh;
     position:fixed;
-    bottom:var(--button-bar-bottom, 2vh);
+    bottom:2vh;
     left:50%;
     transform:translateX(-50%);
-    width:var(--button-bar-width, auto);
-    max-width:var(--button-bar-max-width, none);
     background-color:#f0f0f0;
-    padding:var(--button-bar-padding, 6px 10px);
+    padding:6px 10px;
     border-radius:10px;
     border:1px solid #ddd;
     z-index:50;
   }
 
   .buttonz{
-    border:var(--button-border-width, 2px) solid #4CAF50;
-    border-radius:var(--button-border-radius, 1vw);
-    height:var(--button-height, 5vh);
-    width:var(--button-width, 5vw);
-    min-width:var(--button-min-width, 56px);
-    min-height:var(--button-min-height, 36px);
+    border:2px solid #4CAF50;
+    border-radius:1vw;
+    height:5vh;
+    width:5vw;
+    min-width:56px;
+    min-height:36px;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -457,14 +455,14 @@
     .object-col{
       display:grid;
       grid-template-columns:repeat(5, minmax(0, 1fr));
-      gap:var(--button-bar-gap, 3px);
+      gap:3px;
       width:100%;
     }
 
     .pronoun-grid{
       display:grid;
       grid-template-columns:repeat(3, minmax(0, 1fr));
-      gap:var(--button-bar-gap, 3px);
+      gap:3px;
       width:100%;
     }
 
@@ -505,20 +503,20 @@
     }
 
     .zipbutton{
-      bottom:var(--button-bar-bottom, 5px);
-      width:var(--button-bar-width, calc(100vw - 8px));
-      max-width:var(--button-bar-max-width, 520px);
-      gap:var(--button-bar-gap, 3px);
-      padding:var(--button-bar-padding, 4px);
-      justify-content:var(--button-bar-justify, space-between);
+      bottom:5px;
+      width:calc(100vw - 8px);
+      max-width:520px;
+      gap:3px;
+      padding:4px;
+      justify-content:space-between;
     }
 
     .buttonz{
-      width:var(--button-width, 11.5vw);
-      height:var(--button-height, 42px);
-      min-width:var(--button-min-width, 36px);
-      min-height:var(--button-min-height, 34px);
-      border-radius:var(--button-border-radius, 8px);
+      width:11.5vw;
+      height:42px;
+      min-width:36px;
+      min-height:34px;
+      border-radius:8px;
     }
   }
 
@@ -678,8 +676,33 @@ for (let i = 0; i < sessionStorage.length; i++) {
   </div>
 </main>
 
-<!-- Bottom button bar is rendered from buttonStorage written by structure.html. -->
-<div id="buttonBarMount" aria-label="Program button mount"></div>
+<div id="pbar" class="zipbutton" aria-label="Program buttons">
+  <div class="buttonz" data-btn="continue" title="Advance to next page">
+    <img src="../trigger/adelante.jpg" alt="Advance">
+  </div>
+  <div class="buttonz" data-btn="exit" title="Exit" onclick="window.location.assign('../quit.html');">
+    <img src="../trigger/exit.jpg" alt="Exit">
+  </div>
+  <div class="buttonz" data-btn="choosel" title="Choose lesson">
+    <img src="../trigger/choosel.jpg" alt="Choose lesson">
+  </div>
+  <div class="buttonz" data-btn="help" title="Help / guidelines">
+    <img src="../trigger/help.jpg" alt="Help">
+  </div>
+  <div class="buttonz" data-btn="donate" title="Donate">
+    <img src="../trigger/donate.jpg" alt="Donate">
+  </div>
+    <div class="buttonz" data-btn="email" title="Contact Jimmy Lucky">
+    <img src="../trigger/email.jpg" alt="Email">
+  </div>
+  <!-- Button 7: La Gente - use the same clean desktop return pattern as Plática V2 -->
+  <div class="buttonz" data-btn="goback" title="La Gente">
+    <img src="../trigger/lagente.jpg" alt="La Gente">
+  </div>
+  <div class="buttonz" data-btn="translate" title="Translation">
+    <img src="../trigger/translate.jpg" alt="Translate">
+  </div>
+</div>
 
 <div id="contactOverlay" class="contact-overlay" hidden>
   <div class="contact-box">
@@ -1209,76 +1232,7 @@ function closeDonateOverlay(){
 // ----- Bottom image-button actions -----
 // This is the working button-study idea, now connected to real conductor actions.
 (function(){
-
-  function readButtonStorage(){
-    const raw = sessionStorage.getItem("buttonStorage");
-    if (!raw) {
-      console.warn("No buttonStorage found. Open structure.html first so conductor can receive the button structure.");
-      return null;
-    }
-
-    try {
-      const storage = JSON.parse(raw);
-      if (!storage || !Array.isArray(storage.buttons)) throw new Error("buttonStorage buttons missing");
-      return storage;
-    } catch (err) {
-      console.warn("buttonStorage exists, but it is not valid:", err);
-      return null;
-    }
-  }
-
-  function applyButtonCssVars(buttonStorage){
-    const vars = buttonStorage && buttonStorage.cssVars;
-    if (!vars || typeof vars !== "object") return;
-
-    Object.entries(vars).forEach(([name, value]) => {
-      if (String(name).startsWith("--")) {
-        document.documentElement.style.setProperty(name, String(value));
-      }
-    });
-  }
-
-  function renderButtonBarFromStorage(){
-    const buttonStorage = readButtonStorage();
-    if (!buttonStorage) return null;
-
-    applyButtonCssVars(buttonStorage);
-
-    const oldBar = document.getElementById("pbar");
-    if (oldBar) oldBar.remove();
-
-    const barInfo = buttonStorage.bar || {};
-    const pbar = document.createElement("div");
-    pbar.id = barInfo.id || "pbar";
-    pbar.className = barInfo.className || "zipbutton";
-    pbar.setAttribute("aria-label", barInfo.ariaLabel || "Program buttons");
-
-    buttonStorage.buttons.forEach(item => {
-      if (!item || !item.action) return;
-
-      const button = document.createElement("div");
-      button.className = item.className || "buttonz";
-      button.dataset.btn = item.action;
-      if (item.title) button.title = item.title;
-
-      if (item.image) {
-        const img = document.createElement("img");
-        img.src = item.image;
-        img.alt = item.alt || item.title || item.action;
-        button.appendChild(img);
-      } else {
-        button.textContent = item.label || item.title || item.action;
-      }
-
-      pbar.appendChild(button);
-    });
-
-    const mount = document.getElementById("buttonBarMount") || document.body;
-    mount.appendChild(pbar);
-    return pbar;
-  }
-
-  const pbar = renderButtonBarFromStorage();
+  const pbar = document.getElementById("pbar");
   if (!pbar) return;
 
   function goTo(page){
@@ -1316,7 +1270,16 @@ function closeDonateOverlay(){
     },
 
     help(){
-      goTo("guidelines.html");
+      const lesson = currentLesson();
+
+      sessionStorage.setItem("ingles_return_lesson", String(lesson));
+      sessionStorage.setItem("ingles_return_page", "conductor.html");
+      sessionStorage.setItem("ingles_return_lane", "desktop");
+      sessionStorage.setItem("lesson", String(lesson));
+      sessionStorage.setItem("selectedLesson", String(lesson));
+      sessionStorage.setItem("currentLesson", String(lesson));
+
+      goTo("../guide/guidelines.html");
     },
 
     email(){
