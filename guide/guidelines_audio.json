@@ -1,7 +1,7 @@
 { "guide01": { "audio": "./audio/ahora_que.m4a" },
   "guide02": { "audio": "./audio/dale_oportunidad.m4a" },
   "guide03": { "audio": "./audio/presente.m4a" },
-  "guide04": { "audio": "./audio/chat_only.m4a" },
+  "guide04": { "audio": "./audio/platicar.m4a" },
   "guide05": { "audio": "./audio/past_spanish.m4a" },
   "guide06": { "audio": "./audio/notranslating.m4a" },
   "guide07": { "audio": "./audio/three_rooms.m4a" },
