@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>InglesYa Phone Structure</title>
+<title>InglesYa Phone Structure - Direct Level Start</title>
 <style>
   body{
     margin:0;
@@ -26,7 +26,7 @@
 </style>
 </head>
 <body>
-  <div class="message">Preparing the phone structure...</div>
+  <div class="message">InglesYa phone structure prepared</div>
 
 <script>
 (function(){
@@ -85,34 +85,50 @@
   if (!sessionStorage.getItem("tense")) sessionStorage.setItem("tense", "now");
 
   const params = new URLSearchParams(window.location.search);
-  const shouldAutoStartLevel1 =
+  const requestedLesson =
+    params.get("lesson") ||
+    params.get("selectedLesson") ||
+    sessionStorage.getItem("selectedLesson") ||
+    sessionStorage.getItem("lesson") ||
+    sessionStorage.getItem("currentLesson") ||
+    localStorage.getItem("selectedLesson") ||
+    localStorage.getItem("lesson") ||
+    localStorage.getItem("currentLesson") ||
+    "1";
+
+  const firstTime =
+    params.get("firstTime") === "1" ||
     params.get("autoStartLevel1") === "1" ||
     sessionStorage.getItem("autoStartLevel1") === "yes" ||
     sessionStorage.getItem("firstTimeStart") === "yes" ||
     localStorage.getItem("autoStartLevel1") === "yes" ||
     localStorage.getItem("firstTimeStart") === "yes";
 
-  if (shouldAutoStartLevel1) {
-    sessionStorage.setItem("lesson", "1");
-    sessionStorage.setItem("selectedLesson", "1");
-    sessionStorage.setItem("currentLesson", "1");
-    localStorage.setItem("lesson", "1");
-    localStorage.setItem("selectedLesson", "1");
-    localStorage.setItem("currentLesson", "1");
-    sessionStorage.removeItem("autoStartLevel1");
-    sessionStorage.removeItem("firstTimeStart");
-    localStorage.removeItem("autoStartLevel1");
-    localStorage.removeItem("firstTimeStart");
-    window.location.replace("conductor.html?lesson=1&prep=" + Date.now());
-    return;
-  }
+  const n = Number(requestedLesson);
+  const lessonToOpen = firstTime ? "1" : (Number.isFinite(n) && n >= 1 && n <= 20 ? String(n) : "1");
 
-  if (!sessionStorage.getItem("lesson") && !sessionStorage.getItem("selectedLesson")) {
-    sessionStorage.setItem("lesson", "1");
-    sessionStorage.setItem("selectedLesson", "1");
-  }
+  // IMPORTANT PHONE REPAIR:
+  // Structure is now the preparation page only. It always writes a fresh
+  // phone layout and then opens the conductor. It no longer sends first-time
+  // users through La Gente, Welcome, or Lesson Select. Lesson Select remains
+  // available only from button number 3 inside the program.
+  sessionStorage.setItem("lesson", lessonToOpen);
+  sessionStorage.setItem("selectedLesson", lessonToOpen);
+  sessionStorage.setItem("currentLesson", lessonToOpen);
+  sessionStorage.setItem("inglesyaLane", "phone");
+  sessionStorage.setItem("phoneMode", "1");
+  sessionStorage.removeItem("desktopMode");
+  sessionStorage.removeItem("autoStartLevel1");
+  sessionStorage.removeItem("firstTimeStart");
 
-  window.location.replace("lessonselect.html");
+  localStorage.setItem("lesson", lessonToOpen);
+  localStorage.setItem("selectedLesson", lessonToOpen);
+  localStorage.setItem("currentLesson", lessonToOpen);
+  localStorage.setItem("inglesyaLane", "phone");
+  localStorage.removeItem("autoStartLevel1");
+  localStorage.removeItem("firstTimeStart");
+
+  window.location.replace("conductor.html?lesson=" + encodeURIComponent(lessonToOpen) + "&prep=" + Date.now());
 })();
 </script>
 </body>
