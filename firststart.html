@@ -4,61 +4,63 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>InglesYa First Start</title>
+
   <style>
     * { box-sizing: border-box; }
 
     html, body {
       margin: 0;
+      width: 100%;
       min-height: 100%;
       font-family: Arial, Helvetica, sans-serif;
       background: #57ecf6;
-      color: #222;
     }
 
     body {
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 18px;
+      padding: 10px;
     }
 
-    .welcome-card {
-      width: min(92vw, 430px);
+    .first-start-card {
+      width: min(96vw, 760px);
+      min-height: 96vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
       background: tan;
       border-radius: 18px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-      padding: 18px;
+      padding: 10px;
       text-align: center;
     }
 
-    h1 {
-      margin: 0 0 12px;
-      font-size: clamp(1.55rem, 7vw, 2.15rem);
-    }
-
-    p {
-      margin: 10px 0;
-      font-size: clamp(1.05rem, 4.8vw, 1.35rem);
-      line-height: 1.28;
-    }
-
-    .button-note {
-      background: #fffbea;
-      border: 2px solid #8a6a25;
+    .help-image {
+      width: 80vw;
+      height: 72vh;
+      max-width: 720px;
+      object-fit: contain;
+      display: block;
       border-radius: 14px;
-      padding: 12px;
-      margin: 14px 0;
+    }
+
+    .instruction {
+      font-size: clamp(1rem, 3vw, 1.4rem);
       font-weight: bold;
+      margin: 4px 0 8px;
+      color: #111;
     }
 
     button {
-      margin-top: 10px;
       background: #007acc;
       color: white;
       border: none;
-      border-radius: 10px;
-      padding: 12px 22px;
-      font-size: 1.15rem;
+      border-radius: 12px;
+      padding: 12px 26px;
+      font-size: clamp(1.1rem, 4.5vw, 1.5rem);
       font-weight: bold;
       cursor: pointer;
       box-shadow: 0 4px 10px rgba(0,0,0,0.22);
@@ -67,17 +69,16 @@
     button:hover { background: #005fa3; }
   </style>
 </head>
+
 <body>
-  <main class="welcome-card">
-    <h1>Welcome to InglesYa</h1>
+  <main class="first-start-card">
+    <img class="help-image"
+         src="Trigger/help.jpg"
+         alt="Press this button in the program">
 
-    <p>This program teaches by listening, seeing, and clicking.</p>
-
-    <div class="button-note">
-      On the regular lesson page, use button number 4 when you want help or guidance.
-    </div>
-
-    <p>Press Continue to begin Level 1.</p>
+    <p class="instruction">
+      When you see this picture in the program, press that button for help.
+    </p>
 
     <button type="button" onclick="startLevelOne()">Continue</button>
   </main>
