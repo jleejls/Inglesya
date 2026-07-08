@@ -107,28 +107,54 @@
   const n = Number(requestedLesson);
   const lessonToOpen = firstTime ? "1" : (Number.isFinite(n) && n >= 1 && n <= 20 ? String(n) : "1");
 
-  // IMPORTANT PHONE REPAIR:
-  // Structure is now the preparation page only. It always writes a fresh
-  // phone layout and then opens the conductor. It no longer sends first-time
-  // users through La Gente, Welcome, or Lesson Select. Lesson Select remains
-  // available only from button number 3 inside the program.
-  sessionStorage.setItem("lesson", lessonToOpen);
-  sessionStorage.setItem("selectedLesson", lessonToOpen);
-  sessionStorage.setItem("currentLesson", lessonToOpen);
-  sessionStorage.setItem("inglesyaLane", "phone");
-  sessionStorage.setItem("phoneMode", "1");
-  sessionStorage.removeItem("desktopMode");
-  sessionStorage.removeItem("autoStartLevel1");
-  sessionStorage.removeItem("firstTimeStart");
+  function storeLessonAndMode(value) {
+    sessionStorage.setItem("lesson", value);
+    sessionStorage.setItem("selectedLesson", value);
+    sessionStorage.setItem("currentLesson", value);
+    sessionStorage.setItem("inglesyaLane", "phone");
+    sessionStorage.setItem("phoneMode", "1");
+    sessionStorage.removeItem("desktopMode");
+    sessionStorage.removeItem("autoStartLevel1");
+    sessionStorage.removeItem("firstTimeStart");
 
-  localStorage.setItem("lesson", lessonToOpen);
-  localStorage.setItem("selectedLesson", lessonToOpen);
-  localStorage.setItem("currentLesson", lessonToOpen);
-  localStorage.setItem("inglesyaLane", "phone");
-  localStorage.removeItem("autoStartLevel1");
-  localStorage.removeItem("firstTimeStart");
+    localStorage.setItem("lesson", value);
+    localStorage.setItem("selectedLesson", value);
+    localStorage.setItem("currentLesson", value);
+    localStorage.setItem("inglesyaLane", "phone");
+    localStorage.removeItem("autoStartLevel1");
+    localStorage.removeItem("firstTimeStart");
+  }
 
-  window.location.replace("conductor.html?lesson=" + encodeURIComponent(lessonToOpen) + "&prep=" + Date.now());
+  function openConductor(value) {
+    storeLessonAndMode(value);
+    window.location.replace("conductor.html?lesson=" + encodeURIComponent(value) + "&prep=" + Date.now());
+  }
+
+  const showIntro =
+    firstTime ||
+    params.get("intro") === "1" ||
+    params.get("newcomer") === "1";
+
+  if (showIntro) {
+    const message = document.querySelector(".message");
+    if (message) {
+      message.innerHTML =
+        '<h1 style="margin:0 0 10px;font-size:1.45rem;">InglesYa</h1>' +
+        '<p style="font-size:1.08rem;line-height:1.35;margin:0 0 14px;">' +
+        'This program will open at Level 1. For instructions, use button number 4 inside the program.' +
+        '</p>' +
+        '<button id="continueToLevelOne" type="button" style="font-size:1.05rem;padding:10px 18px;border:0;border-radius:10px;background:#007acc;color:white;font-weight:700;">Continue</button>';
+      document.getElementById("continueToLevelOne").addEventListener("click", function () {
+        openConductor("1");
+      });
+    }
+    return;
+  }
+
+  // Structure is the preparation page. It writes a fresh phone layout and then
+  // opens the conductor. Lesson Select remains available only from button #3
+  // after the student is already inside the program.
+  openConductor(lessonToOpen);
 })();
 </script>
 </body>

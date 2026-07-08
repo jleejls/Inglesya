@@ -604,9 +604,8 @@ for (let i = 0; i < sessionStorage.length; i++) {
     <div class="buttonz" data-btn="email" title="Contact Jimmy Lucky">
     <img src="../trigger/email.jpg" alt="Email">
   </div>
-  <!-- Button 7: La Gente - use the same clean desktop return pattern as Plática V2 -->
-  <div class="buttonz" data-btn="goback" title="La Gente">
-    <img src="../trigger/lagente.jpg" alt="La Gente">
+  <div class="buttonz" data-btn="extrahelp" title="More instructions">
+    <img src="../trigger/help.jpg" alt="More instructions">
   </div>
   <div class="buttonz" data-btn="translate" title="Translation">
     <img src="../trigger/translate.jpg" alt="Translate">
@@ -1214,26 +1213,12 @@ function closeDonateOverlay(){
       openDonateOverlay();
     },
 
-    // Button 7: La Gente - clean lane return, no file URL storage and no Plática fallback.
-    openLaGente(){
+    extrahelp(){
       const lesson = currentLesson();
-      sessionStorage.setItem("inglesyaLane", "phone");
-      localStorage.setItem("inglesyaLane", "phone");
-      sessionStorage.setItem("lesson", String(lesson));
-      sessionStorage.setItem("selectedLesson", String(lesson));
-      sessionStorage.setItem("currentLesson", String(lesson));
-      localStorage.setItem("lesson", String(lesson));
-      localStorage.setItem("selectedLesson", String(lesson));
-      localStorage.setItem("currentLesson", String(lesson));
-      goTo("../lagente.html?return=phone&lesson=" + encodeURIComponent(lesson));
-    },
-
-    goback(){
-      actions.openLaGente();
-    },
-
-    lagente(){
-      actions.openLaGente();
+      sessionStorage.setItem("ingles_return_lesson", String(lesson));
+      sessionStorage.setItem("ingles_return_page", "conductor.html");
+      sessionStorage.setItem("ingles_return_lane", "phone");
+      goTo("../guide/guidelines.html");
     },
 
     translate(){
