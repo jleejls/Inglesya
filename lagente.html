@@ -231,7 +231,10 @@
     localStorage.setItem("currentLesson", lesson);
     localStorage.setItem("inglesyaLane", lane);
 
-    const conductorPath = lane === "phone" ? "./ingles_phone/conductor.html" : "./ingles_desktop/conductor.html";
+    const savedReturnPage = sessionStorage.getItem("ingles_return_page") || "conductor.html";
+    const conductorPath = lane === "phone"
+      ? "./ingles_phone/" + savedReturnPage
+      : "./ingles_desktop/" + savedReturnPage;
     window.location.href = conductorPath + "?lesson=" + encodeURIComponent(lesson) + "&prep=" + Date.now();
   }
 </script>
