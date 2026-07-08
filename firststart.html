@@ -1,38 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>InglesYa Start</title>
-<style>
-  *{box-sizing:border-box;}
-  html,body{margin:0;min-height:100%;font-family:Arial,Helvetica,sans-serif;background:#57ecf6;color:#222;}
-  body{display:flex;align-items:center;justify-content:center;padding:18px;}
-  .card{width:min(92vw,430px);background:#fffbea;border:2px solid #d7c88a;border-radius:16px;padding:22px 18px;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.20);}
-  p{font-size:1.15rem;line-height:1.35;margin:0 0 18px;}
-  button{font-size:1.1rem;font-weight:700;border:2px solid #4CAF50;border-radius:12px;background:#d05000;color:#fff;padding:12px 24px;cursor:pointer;}
-  button:active{transform:translateY(1px);}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>InglesYa First Start</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #57ecf6;
+      color: #222;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .welcome-card {
+      width: min(92vw, 430px);
+      background: tan;
+      border-radius: 18px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+      padding: 18px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(1.55rem, 7vw, 2.15rem);
+    }
+
+    p {
+      margin: 10px 0;
+      font-size: clamp(1.05rem, 4.8vw, 1.35rem);
+      line-height: 1.28;
+    }
+
+    .button-note {
+      background: #fffbea;
+      border: 2px solid #8a6a25;
+      border-radius: 14px;
+      padding: 12px;
+      margin: 14px 0;
+      font-weight: bold;
+    }
+
+    button {
+      margin-top: 10px;
+      background: #007acc;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 22px;
+      font-size: 1.15rem;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.22);
+    }
+
+    button:hover { background: #005fa3; }
+  </style>
 </head>
 <body>
-  <main class="card">
-    <p>For instructions, use button number 4 inside the program.</p>
-    <button type="button" onclick="beginLevelOne()">Continue</button>
+  <main class="welcome-card">
+    <h1>Welcome to InglesYa</h1>
+
+    <p>This program teaches by listening, seeing, and clicking.</p>
+
+    <div class="button-note">
+      On the regular lesson page, use button number 4 when you want help or guidance.
+    </div>
+
+    <p>Press Continue to begin Level 1.</p>
+
+    <button type="button" onclick="startLevelOne()">Continue</button>
   </main>
-<script>
-function beginLevelOne(){
-  sessionStorage.setItem("inglesyaLane", "phone");
-  sessionStorage.setItem("phoneMode", "1");
-  sessionStorage.setItem("lesson", "1");
-  sessionStorage.setItem("selectedLesson", "1");
-  sessionStorage.setItem("currentLesson", "1");
-  sessionStorage.removeItem("desktopMode");
-  localStorage.setItem("inglesyaLane", "phone");
-  localStorage.setItem("lesson", "1");
-  localStorage.setItem("selectedLesson", "1");
-  localStorage.setItem("currentLesson", "1");
-  window.location.href = "ingles_phone/structure.html?firstTime=1&autoStartLevel1=1&lesson=1";
-}
-</script>
+
+  <script>
+    function startLevelOne(){
+      sessionStorage.setItem("inglesyaLane", "phone");
+      sessionStorage.setItem("phoneMode", "1");
+      sessionStorage.setItem("lesson", "1");
+      sessionStorage.setItem("selectedLesson", "1");
+      sessionStorage.setItem("currentLesson", "1");
+      sessionStorage.setItem("firstTimeStart", "yes");
+      sessionStorage.setItem("autoStartLevel1", "yes");
+      sessionStorage.removeItem("desktopMode");
+
+      localStorage.setItem("inglesyaLane", "phone");
+      localStorage.setItem("lesson", "1");
+      localStorage.setItem("selectedLesson", "1");
+      localStorage.setItem("currentLesson", "1");
+      localStorage.setItem("firstTimeStart", "yes");
+      localStorage.setItem("autoStartLevel1", "yes");
+
+      window.location.href = "ingles_phone/structure.html?firstTime=1&lesson=1&prep=" + Date.now();
+    }
+  </script>
 </body>
 </html>
