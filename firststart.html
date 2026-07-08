@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InglesYa Start</title>
+<style>
+  *{box-sizing:border-box;}
+  html,body{margin:0;min-height:100%;font-family:Arial,Helvetica,sans-serif;background:#57ecf6;color:#222;}
+  body{display:flex;align-items:center;justify-content:center;padding:18px;}
+  .card{width:min(92vw,430px);background:#fffbea;border:2px solid #d7c88a;border-radius:16px;padding:22px 18px;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.20);}
+  p{font-size:1.15rem;line-height:1.35;margin:0 0 18px;}
+  button{font-size:1.1rem;font-weight:700;border:2px solid #4CAF50;border-radius:12px;background:#d05000;color:#fff;padding:12px 24px;cursor:pointer;}
+  button:active{transform:translateY(1px);}
+</style>
+</head>
+<body>
+  <main class="card">
+    <p>For instructions, use button number 4 inside the program.</p>
+    <button type="button" onclick="beginLevelOne()">Continue</button>
+  </main>
+<script>
+function beginLevelOne(){
+  sessionStorage.setItem("inglesyaLane", "phone");
+  sessionStorage.setItem("phoneMode", "1");
+  sessionStorage.setItem("lesson", "1");
+  sessionStorage.setItem("selectedLesson", "1");
+  sessionStorage.setItem("currentLesson", "1");
+  sessionStorage.removeItem("desktopMode");
+  localStorage.setItem("inglesyaLane", "phone");
+  localStorage.setItem("lesson", "1");
+  localStorage.setItem("selectedLesson", "1");
+  localStorage.setItem("currentLesson", "1");
+  window.location.href = "ingles_phone/structure.html?firstTime=1&autoStartLevel1=1&lesson=1";
+}
+</script>
+</body>
+</html>

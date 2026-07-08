@@ -604,8 +604,8 @@ for (let i = 0; i < sessionStorage.length; i++) {
     <div class="buttonz" data-btn="email" title="Contact Jimmy Lucky">
     <img src="../trigger/email.jpg" alt="Email">
   </div>
-  <div class="buttonz" data-btn="extrahelp" title="More instructions">
-    <img src="../trigger/help.jpg" alt="More instructions">
+  <div class="buttonz" data-btn="reserved" title="Reserved">
+    <span aria-hidden="true" style="color:white;font-weight:bold;font-size:14px;">7</span>
   </div>
   <div class="buttonz" data-btn="translate" title="Translation">
     <img src="../trigger/translate.jpg" alt="Translate">
@@ -1213,12 +1213,8 @@ function closeDonateOverlay(){
       openDonateOverlay();
     },
 
-    extrahelp(){
-      const lesson = currentLesson();
-      sessionStorage.setItem("ingles_return_lesson", String(lesson));
-      sessionStorage.setItem("ingles_return_page", "conductor.html");
-      sessionStorage.setItem("ingles_return_lane", "phone");
-      goTo("../guide/guidelines.html");
+    reserved(){
+      // Button 7 is intentionally unused in this simplified phone path.
     },
 
     translate(){
