@@ -45,7 +45,6 @@
       object-fit: contain;
       display: block;
       border-radius: 14px;
-      background: white;
     }
 
     .instruction {
@@ -73,7 +72,9 @@
 
 <body>
   <main class="first-start-card">
-    <img id="helpImage" class="help-image" src="Trigger/help.jpg" alt="Press this button in the program">
+    <img class="help-image"
+         src="Trigger/help.jpg"
+         alt="Press this button in the program">
 
     <p class="instruction">
       When you see this picture in the program, press that button for help.
@@ -83,25 +84,6 @@
   </main>
 
   <script>
-    const helpImage = document.getElementById("helpImage");
-    const imagePaths = [
-      "Trigger/help.jpg",
-      "trigger/help.jpg",
-      "triggers/help.jpg",
-      "Triggers/help.jpg",
-      "help.jpg"
-    ];
-    let imagePathIndex = 0;
-
-    helpImage.onerror = function () {
-      imagePathIndex++;
-      if (imagePathIndex < imagePaths.length) {
-        helpImage.src = imagePaths[imagePathIndex] + "?v=" + Date.now();
-      } else {
-        helpImage.alt = "The help image was not found. Check the folder name and file name.";
-      }
-    };
-
     function startLevelOne(){
       sessionStorage.setItem("inglesyaLane", "phone");
       sessionStorage.setItem("phoneMode", "1");
