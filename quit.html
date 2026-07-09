@@ -5,4 +5,13 @@
 </head>
 <body style="background:#f5f0e6;">
 </body>
+<script>
+  sessionStorage.clear();
+
+  history.pushState(null, "", location.href);
+  window.addEventListener("popstate", function () {
+    history.pushState(null, "", location.href);
+  });
+</script>
+
 </html>
