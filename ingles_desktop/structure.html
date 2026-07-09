@@ -161,59 +161,57 @@
   const buttonBox = {
     border:"2px solid #4CAF50",
     borderRadius:"10px",
-    height:"46px",
-    width:"68px",
-    minWidth:"68px",
-    minHeight:"46px",
+    width:"min(6.24vw, 75px)",
+    height:"min(5.2vh, 42px)",
+    minWidth:"56px",
+    minHeight:"30px",
     display:"flex",
-    flexDirection:"column",
     alignItems:"center",
     justifyContent:"center",
-    fontSize:"11px",
-    fontWeight:"600",
-    color:"#ffffff",
     backgroundColor:"#d05000",
     cursor:"pointer",
     boxSizing:"border-box",
-    overflow:"hidden"
+    overflow:"hidden",
+    flex:"0 0 auto"
   };
 
   const buttonImg = {
-    maxWidth:"88%",
-    maxHeight:"80%",
+    maxWidth:"100%",
+    maxHeight:"100%",
     display:"block",
     pointerEvents:"none",
     objectFit:"contain"
   };
 
   const buttonStorage = {
-    version:"inglesya-desktop-screenshot-buttons-in-structure-20260709",
+    version:"inglesya-desktop-buttons-matched-to-platica-v2-20260709",
     barStyle:{
       display:"flex",
       flexDirection:"row",
       alignItems:"center",
       justifyContent:"center",
-      gap:"9px",
+      gap:"0.55vw",
       position:"fixed",
-      bottom:"14px",
+      bottom:"2vh",
       left:"50%",
       transform:"translateX(-50%)",
-      backgroundColor:"transparent",
-      padding:"4px 8px",
+      backgroundColor:"#f0f0f0",
+      padding:"4px 6px",
       borderRadius:"10px",
-      border:"none",
+      border:"1px solid #ddd",
+      maxWidth:"96vw",
+      overflow:"hidden",
       zIndex:"50"
     },
     buttons:[
-      { id:"back",       title:"Back",                      label:"Atrás",        imgSrc:"../trigger/back.jpg",      alt:"Atrás",        style:buttonBox, imgStyle:buttonImg },
-      { id:"continue",   title:"Advance to next page",      label:"Adelante",     imgSrc:"../trigger/adelante.jpg",  alt:"Adelante",     style:buttonBox, imgStyle:buttonImg },
-      { id:"translate",  title:"Translation",               label:"Traducción",   imgSrc:"../trigger/translate.jpg", alt:"Traducción",   style:buttonBox, imgStyle:buttonImg },
-      { id:"help",       title:"Help / guidelines",         label:"Consejos",     imgSrc:"../trigger/help.jpg",      alt:"Consejos",     style:buttonBox, imgStyle:buttonImg },
-      { id:"pathway",    title:"Pathway guide",             label:"Sendero guía", imgSrc:"../trigger/pathway.jpg",   alt:"Sendero guía", style:buttonBox, imgStyle:buttonImg },
-      { id:"donate",     title:"Donate",                    label:"Donación",     imgSrc:"../trigger/donate.jpg",    alt:"Donación",     style:buttonBox, imgStyle:buttonImg },
-      { id:"voice",      title:"Voice selection",           label:"Voz",          imgSrc:"../trigger/lagente.jpg",   alt:"Voz",          style:buttonBox, imgStyle:buttonImg },
-      { id:"exit",       title:"Exit",                      label:"Apagar",       imgSrc:"../trigger/exit.jpg",      alt:"Apagar",       style:buttonBox, imgStyle:buttonImg },
-      { id:"review",     title:"Review / index",            label:"Repasa",       imgSrc:"../trigger/review.jpg",    alt:"Repasa",       style:buttonBox, imgStyle:buttonImg }
+      { id:"continue",   title:"Advance to next level",       label:"Adelante",   imgSrc:"../trigger/adelante.jpg",  alt:"Adelante",   style:buttonBox, imgStyle:buttonImg },
+      { id:"exit",       title:"Exit",                        label:"Exit",       imgSrc:"../trigger/exit.jpg",      alt:"Exit",       style:buttonBox, imgStyle:buttonImg },
+      { id:"choosel",    title:"Go to level selection",       label:"Levels",     imgSrc:"../trigger/choosel.jpg",   alt:"Levels",     style:buttonBox, imgStyle:buttonImg },
+      { id:"help",       title:"Guidelines",                  label:"Help",       imgSrc:"../trigger/help.jpg",      alt:"Help",       style:buttonBox, imgStyle:buttonImg },
+      { id:"donate",     title:"Donate",                      label:"Donate",     imgSrc:"../trigger/donate.jpg",    alt:"Donate",     style:buttonBox, imgStyle:buttonImg },
+      { id:"email",      title:"Email information",           label:"Email",      imgSrc:"../trigger/email.jpg",     alt:"Email",      style:buttonBox, imgStyle:buttonImg },
+      { id:"characters", title:"La Gente",                    label:"La Gente",   imgSrc:"../trigger/lagente.jpg",   alt:"La Gente",   style:buttonBox, imgStyle:buttonImg },
+      { id:"translate",  title:"Translation",                 label:"Translate",  imgSrc:"../trigger/translate.jpg", alt:"Translate",  style:buttonBox, imgStyle:buttonImg }
     ]
   };
 
