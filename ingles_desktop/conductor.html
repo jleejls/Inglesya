@@ -1057,8 +1057,18 @@ function closeDonateOverlay(){
   }
 
   document.addEventListener("contextmenu", function(ev){
-    const sourceImage = ev.target.closest(".tile img");
+    /*
+      Right-click magnifier repair:
+      The tile images intentionally use pointer-events:none, so the browser
+      reports the right-click target as the surrounding .tile, not the img.
+      Find the tile first, then use the image inside it.
+    */
+    const tile = ev.target.closest(".tile[data-group][data-index]");
+    if (!tile) return;
+
+    const sourceImage = tile.querySelector("img");
     if (!sourceImage) return;
+
     ev.preventDefault();
     ev.stopPropagation();
     openMagnifier(sourceImage);
