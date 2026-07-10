@@ -1,1358 +1,1145 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-<meta charset="utf-8">
-<title>Conductor</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<style>
-   :root{
-    --trigger-size: 54px;
-    --trigger-gap: 8px;
-    --trigger-pad-y: 8px;
-    --trigger-pad-x: 10px;
-    --trigger-bar-height: calc(var(--trigger-size) + (var(--trigger-pad-y) * 2));
-  }
-  *{ box-sizing:border-box; }
-  html, body{
-    margin:0;
-    width:100%;
-    height:100%;
-    background:#ffffff;
-    overflow-x:hidden;
-    overflow-y:auto;
-    font-family:Arial, Helvetica, sans-serif;
-  }
-  body{
-    margin:0;
-    font-family:system-ui,Segoe UI,Roboto,Arial;
-    background:#ffffff;
-    color:#222;
-  }
-  header{
-    display:none;
-  }
-  main{
-    max-width:1140px;
-    margin:0 auto;
-    padding:46px 12px 64px;
-  }
-
-  h3{
-    display:none;
-  }
-
-  .lesson-number-badge{
-    position:fixed;
-    top:10px;
-    right:12px;
-    z-index:70;
-    width:38px;
-    height:38px;
-    border-radius:50%;
-    background:#fffbea;
-    border:2px solid #8a6a25;
-    color:#3b3020;
-    box-shadow:0 2px 8px rgba(0,0,0,.18);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font:bold 18px Arial, Helvetica, sans-serif;
-    pointer-events:none;
-  }
-
-  /* Phone station stage: row counts come from structure.html stationStorage.
-     8 narrow grid tracks let 3-frame rows center above 4-frame rows. */
-  main{
-    max-width:560px;
-    margin:0 auto;
-    padding:14px 8px calc(var(--trigger-bar-height) + 18px);
-  }
-
-  .station-grid{
-    display:grid;
-    grid-template-columns:repeat(8, minmax(0, 1fr));
-    gap:5px;
-    width:min(calc(100vw - 12px),430px);
-    margin:0 auto;
-    align-items:center;
-  }
-
-  .station-error{
-    width:min(92vw,520px);
-    margin:40px auto;
-    padding:18px;
-    border:2px solid #b00020;
-    border-radius:12px;
-    background:#fff4f4;
-    color:#4d0000;
-    font:16px/1.35 Arial, Helvetica, sans-serif;
-    text-align:center;
-  }
-
-  .tile{
-    position:relative;
-    border:1px solid #d7dbe3;
-    border-radius:8px;
-    overflow:hidden;
-    cursor:pointer;
-    background:#f9fafb;
-    aspect-ratio:1/1;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-  }
-
-  .tile[data-shape="circle"]{
-    border-radius:50%;
-    overflow:hidden;
-  }
-
-  .tile[data-shape="circle"] img{
-    border-radius:50%;
-    width:82%;
-    height:82%;
-  }
-
-  .tile[data-shape="circle"].speaking{
-    outline:4px solid #c00000;
-    outline-offset:3px;
-    box-shadow:0 0 0 5px rgba(192,0,0,.16), 0 2px 8px rgba(0,0,0,.18);
-  }
-
-  .tile[data-group="objects"] img{
-    width:92%;
-    height:92%;
-    object-fit:contain;
-    display:block;
-  }
-
-  .tile[data-group="pronouns"] img{
-    width:100%;
-    height:100%;
-    object-fit:contain;
-    display:block;
-  }
-
-
-  .label{
-    font:11px/1.2 monospace;
-    color:#555;
-    text-align:center;
-    padding:4px;
-    white-space:pre-line;
-  }
-
-
-
-  /* Bottom image buttons copied from the button-study essence */
-  .zipbutton{
-    display:flex;
-    flex-direction:row;
-    align-items:center;
-    justify-content:center;
-    gap:2vh;
-    position:fixed;
-    bottom:2vh;
-    left:50%;
-    transform:translateX(-50%);
-    background-color:#f0f0f0;
-    padding:6px 10px;
-    border-radius:10px;
-    border:1px solid #ddd;
-    z-index:50;
-  }
-
-  .buttonz{
-    border:2px solid #4CAF50;
-    border-radius:1vw;
-    height:5vh;
-    width:5vw;
-    min-width:56px;
-    min-height:36px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:14px;
-    background-color:#d05000;
-    cursor:pointer;
-  }
-
-  .buttonz img{
-    max-width:100%;
-    max-height:100%;
-    display:block;
-    pointer-events:none;
-  }
-
-
-  /* Email contact overlay: stays invisible until the email button opens it */
-  .contact-overlay{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,.45);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    z-index:200;
-    padding:20px;
-  }
-
-  .contact-overlay[hidden]{
-    display:none;
-  }
-
-  .contact-box{
-    background:white;
-    color:black;
-    padding:25px;
-    border-radius:12px;
-    max-width:430px;
-    text-align:center;
-    font-family:Arial, sans-serif;
-    box-shadow:0 8px 25px rgba(0,0,0,.25);
-  }
-
-  .contact-box a,
-  .contact-box button{
-    display:inline-block;
-    margin:6px;
-    padding:9px 13px;
-    border-radius:8px;
-    border:1px solid #777;
-    background:#f4f4f4;
-    color:#111;
-    text-decoration:none;
-    font:14px Arial, sans-serif;
-    cursor:pointer;
-  }
-
-  .contact-address{
-    font-weight:bold;
-    margin:10px 0 14px;
-  }
-
-  /* Small debug badge */
-  .foot{
-    display:none;
-  }
-
-  @media (max-width:600px){
-    main{
-      padding-bottom:80px;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plática Desktop Conductor - Fast Clean</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #111;
+      overflow: hidden;
     }
-  }
-
-
-  /* Lesson preparation pause overlay lives in conductor.html only. */
-  .prep-overlay{
-    position:fixed;
-    inset:0;
-    z-index:9999;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:rgba(255,247,223,0.94);
-    padding:20px;
-  }
-
-  .prep-overlay.done{
-    display:none;
-  }
-
-  .prep-card{
-    width:min(90vw,430px);
-    background:#ffffff;
-    border:1px solid #d7c88a;
-    border-radius:16px;
-    box-shadow:0 8px 24px rgba(0,0,0,0.22);
-    text-align:center;
-    padding:24px 18px;
-  }
-
-  .prep-spinner{
-    width:38px;
-    height:38px;
-    border:5px solid #ddd;
-    border-top-color:#007acc;
-    border-radius:50%;
-    margin:0 auto 14px;
-    animation:prepSpin 0.85s linear infinite;
-  }
-
-  @keyframes prepSpin{
-    to{ transform:rotate(360deg); }
-  }
-
-  .prep-message{
-    font-size:18px;
-    font-weight:700;
-    margin:0;
-    color:#3b3020;
-  }
-
-  .prep-credit{
-    font-size:13px;
-    margin:10px 0 0;
-    color:#665536;
-  }
-
-  .prep-credits{
-    margin:14px auto 0;
-    padding-top:12px;
-    border-top:1px solid #e4d8aa;
-    text-align:left;
-  }
-
-  .prep-credits h2{
-    margin:0 0 8px;
-    text-align:center;
-    font-size:1rem;
-    color:#3b3020;
-  }
-
-  .prep-credits ul{
-    list-style:none;
-    padding:0;
-    margin:0;
-    font-size:0.84rem;
-    line-height:1.35;
-    color:#4d402b;
-  }
-
-  @media (max-width:700px){
-    .prep-card{ padding:20px 15px; }
-    .prep-credits ul{
-      font-size:0.78rem;
-      line-height:1.25;
+    #structure {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
     }
-  }
+    #board {
+      position: absolute;
+      left: 0;
+      right: 0;
+      overflow: hidden;
+    }
+    .slot {
+      position: absolute;
+      overflow: hidden;
+      background: transparent;
+      cursor: pointer;
+    }
+    .slot.circle { border-radius: 50%; }
+    .slot img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      pointer-events: none;
+    }
+    .slot.circle img { border-radius: 50%; }
+    .selected { outline-offset: -5px; }
 
-
-  /* Right-click image magnifier */
-  .image-magnifier-overlay{
-    position:fixed;
-    inset:0;
-    z-index:10000;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:rgba(0,0,0,0.72);
-    padding:36px;
-  }
-
-  .image-magnifier-overlay[hidden]{
-    display:none;
-  }
-
-  .image-magnifier-frame{
-    position:relative;
-    max-width:96vw;
-    max-height:96vh;
-    overflow:auto;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:24px;
-  }
-
-  .image-magnifier-frame img{
-    display:block;
-    max-width:88vw;
-    max-height:88vh;
-    object-fit:contain;
-    transform:scale(1.15);
-    transform-origin:center center;
-  }
-
-  .image-magnifier-close{
-    position:absolute;
-    top:8px;
-    right:8px;
-    z-index:10001;
-    width:42px;
-    height:42px;
-    border-radius:50%;
-    border:3px solid #ffffff;
-    background:#d00000;
-    color:#ffffff;
-    font:bold 26px/1 Arial, Helvetica, sans-serif;
-    cursor:pointer;
-    box-shadow:0 2px 10px rgba(0,0,0,0.35);
-  }
-
-  .image-magnifier-close:hover{
-    background:#ff0000;
-  }
-
-
-  /* Phone station layout: 3-4-3-4-3 + 2 circles from stationStorage. */
-  @media (max-width:700px){
-    html, body{
-      overflow-x:hidden;
+    #pbar {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      background: #f0f0f0;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 4px 6px;
+      z-index: 50;
+      max-width: 96vw;
+      overflow: hidden;
+    }
+    .buttonz {
+      border: 2px solid #4CAF50;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex: 0 0 auto;
+    }
+    .buttonz img {
+      max-width: 100%;
+      max-height: 100%;
+      display: block;
+      pointer-events: none;
+    }
+    #nivelcircle {
+      position: fixed;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 18px;
+      min-width: 88px;
+      min-height: 58px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      padding: 7px 10px;
+      font-weight: 700;
+      box-shadow: 0 2px 6px rgba(0,0,0,.08);
+      z-index: 51;
+      user-select: none;
+      text-align: center;
+      line-height: 1.05;
+    }
+    .level-label {
+      font-size: 0.82rem;
+    }
+    .level-verb {
+      font-size: 1.02rem;
     }
 
-    main{
-      max-width:100vw;
-      padding:8px 6px calc(var(--trigger-bar-height) + 18px);
+    #creditsOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: #f0f8ff;
+      color: #111;
+      font-family: Arial, Helvetica, sans-serif;
+      text-align: center;
+    }
+    #creditsCard {
+      width: min(92vw, 620px);
+      max-height: 86vh;
+      overflow: auto;
+      background: rgba(255,255,255,.94);
+      border: 2px solid #4CAF50;
+      border-radius: 18px;
+      box-shadow: 0 8px 28px rgba(0,0,0,.18);
+      padding: 22px 26px;
+    }
+    #creditsCard h1 {
+      margin: 0 0 12px;
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+    }
+    #creditsCard ul {
+      display: inline-block;
+      margin: 0;
+      padding-left: 1.2em;
+      text-align: left;
+      line-height: 1.55;
+      font-size: clamp(1rem, 2.3vw, 1.2rem);
     }
 
-    .lesson-number-badge{
-      top:5px;
-      right:6px;
-      width:30px;
-      height:30px;
-      font-size:14px;
-      z-index:80;
+
+    .contact-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      padding: 24px;
+    }
+    .contact-overlay[hidden] { display: none; }
+    .contact-box {
+      width: min(92vw, 520px);
+      background: white;
+      color: black;
+      padding: 24px 26px;
+      border: 2px solid #4CAF50;
+      border-radius: 16px;
+      text-align: center;
+      font-family: Arial, Helvetica, sans-serif;
+      box-shadow: 0 8px 28px rgba(0,0,0,.25);
+    }
+    .contact-box h2 {
+      margin: 0 0 12px;
+      font-size: clamp(1.35rem, 3vw, 2rem);
+    }
+    .contact-box p {
+      margin: 8px 0;
+      font-size: clamp(1rem, 2.2vw, 1.18rem);
+      line-height: 1.35;
+    }
+    .contact-address {
+      font-weight: 700;
+      margin: 12px 0 16px !important;
+      word-break: break-word;
+    }
+    .contact-box button {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 9px 15px;
+      border-radius: 8px;
+      border: 1px solid #777;
+      background: #f4f4f4;
+      color: #111;
+      font: 14px Arial, Helvetica, sans-serif;
+      cursor: pointer;
     }
 
-    .station-grid{
-      width:100%;
-      max-width:430px;
-      gap:4px;
+
+    #imageMagnifyOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(0, 0, 0, 0.28);
+    }
+    #imageMagnifyFrame {
+      position: relative;
+      max-width: 92vw;
+      max-height: 88vh;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.96);
+      border: 3px solid #4CAF50;
+      border-radius: 18px;
+      box-shadow: 0 10px 32px rgba(0,0,0,.28);
+      cursor: default;
+    }
+    #imageMagnifyClose {
+      position: absolute;
+      top: -16px;
+      right: -16px;
+      width: 38px;
+      height: 38px;
+      border: 3px solid white;
+      border-radius: 50%;
+      background: red;
+      color: white;
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(0,0,0,.35);
+      z-index: 9001;
+      user-select: none;
+    }
+    #imageMagnifyClose:hover {
+      transform: scale(1.06);
+    }
+    #imageMagnifyFrame img {
+      display: block;
+      width: auto;
+      height: auto;
+      max-width: 88vw;
+      max-height: 82vh;
+      object-fit: contain;
+      user-select: none;
+      -webkit-user-drag: none;
     }
 
-    .tile{
-      width:100%;
-      min-height:0;
-      aspect-ratio:1/1;
-      border-radius:7px;
+    .donate-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10001;
+      padding: 24px;
+    }
+    .donate-overlay[hidden] { display: none; }
+    .donate-box {
+      width: min(92vw, 540px);
+      background: white;
+      color: black;
+      padding: 24px 26px;
+      border: 2px solid #4CAF50;
+      border-radius: 16px;
+      text-align: center;
+      font-family: Arial, Helvetica, sans-serif;
+      box-shadow: 0 8px 28px rgba(0,0,0,.25);
+    }
+    .donate-box h2 {
+      margin: 0 0 10px;
+      font-size: clamp(1.35rem, 3vw, 2rem);
+    }
+    .donate-box p {
+      margin: 8px 0 14px;
+      font-size: clamp(1rem, 2.2vw, 1.18rem);
+      line-height: 1.35;
+    }
+    #paypalDonateButtonContainer {
+      min-height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 12px auto;
+    }
+    .donate-fallback {
+      display: inline-block;
+      margin: 6px 8px;
+      padding: 9px 13px;
+      border-radius: 8px;
+      border: 1px solid #777;
+      background: #f4f4f4;
+      color: #111;
+      text-decoration: none;
+      font: 14px Arial, Helvetica, sans-serif;
+      cursor: pointer;
+    }
+    .donate-close {
+      display: inline-block;
+      margin: 6px 8px;
+      padding: 9px 13px;
+      border-radius: 8px;
+      border: 1px solid #777;
+      background: #f4f4f4;
+      color: #111;
+      font: 14px Arial, Helvetica, sans-serif;
+      cursor: pointer;
     }
 
-    .tile[data-shape="circle"]{
-      border-radius:50%;
-    }
 
-    .tile[data-shape="circle"] img{
-      border-radius:50%;
-      width:82%;
-      height:82%;
-    }
-
-    .zipbutton{
-      bottom:5px;
-      width:calc(100vw - 10px);
-      max-width:430px;
-      gap:2px;
-      padding:3px;
-      justify-content:space-between;
-    }
-
-    .buttonz{
-      width:10.5vw;
-      height:39px;
-      min-width:0;
-      min-height:32px;
-      border-radius:8px;
-    }
-  }
-
-
-
-
-  .donate-overlay{
-    position:fixed;
-    inset:0;
-    z-index:10001;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:rgba(0,0,0,.45);
-    padding:18px;
-  }
-
-  .donate-overlay[hidden]{ display:none; }
-
-  .donate-box{
-    width:min(92vw,430px);
-    max-height:88vh;
-    overflow:auto;
-    background:white;
-    color:black;
-    padding:22px;
-    border:2px solid #4CAF50;
-    border-radius:14px;
-    text-align:center;
-    font-family:Arial, Helvetica, sans-serif;
-    box-shadow:0 8px 25px rgba(0,0,0,.25);
-  }
-
-  .donate-box h2{
-    margin:0 0 10px;
-    font-size:1.45rem;
-  }
-
-  .donate-box p{
-    margin:8px 0 14px;
-    font-size:1rem;
-    line-height:1.35;
-  }
-
-  #paypalDonateButtonContainer{
-    min-height:58px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    margin:12px auto;
-  }
-
-  .donate-fallback,
-  .donate-close{
-    display:inline-block;
-    margin:6px 8px;
-    padding:9px 13px;
-    border-radius:8px;
-    border:1px solid #777;
-    background:#f4f4f4;
-    color:#111;
-    text-decoration:none;
-    font:14px Arial, Helvetica, sans-serif;
-    cursor:pointer;
-  }
-
-</style>
-<script>
-// ----- Conductor startup -----
-// Accept the lesson number no matter which earlier page stored it.
-(function () {
-  const urlLesson = new URLSearchParams(window.location.search).get("lesson");
-  const storedLesson =
-    urlLesson ||
-    sessionStorage.getItem("selectedLesson") ||
-    sessionStorage.getItem("lesson") ||
-    sessionStorage.getItem("currentLesson") ||
-    "1";
-
-  const cleanLesson = Number(storedLesson);
-  const lessonToUse = Number.isFinite(cleanLesson) && cleanLesson > 0 ? String(cleanLesson) : "1";
-
-  sessionStorage.setItem("lesson", lessonToUse);
-  sessionStorage.setItem("selectedLesson", lessonToUse);
-
-  if (!sessionStorage.getItem("tense")) {
-    sessionStorage.setItem("tense", "now");
-  }
-})();
-
-const lesson = sessionStorage.getItem("lesson") || "1";
-const tense  = sessionStorage.getItem("tense")  || "now";
-
-console.log("=== CONDUCTOR STORAGE CHECK ===");
-
-for (let i = 0; i < sessionStorage.length; i++) {
-  const key = sessionStorage.key(i);
-  console.log(key, "=", sessionStorage.getItem(key));
-}
-</script>
+  </style>
 </head>
 <body>
-
-
-<div id="imageMagnifierOverlay" class="image-magnifier-overlay" hidden aria-label="Magnified image viewer">
-  <div class="image-magnifier-frame">
-    <button id="imageMagnifierClose" class="image-magnifier-close" type="button" aria-label="Close magnified image">×</button>
-    <img id="imageMagnifierImage" alt="Magnified image">
-  </div>
-</div>
-
-
-<div id="prepOverlay" class="prep-overlay" aria-live="polite" aria-label="Lesson preparation message">
-  <div class="prep-card">
-    <div class="prep-spinner" aria-hidden="true"></div>
-    <p class="prep-message">Your level is being prepared...</p>
-    <p class="prep-credit">Created by Jimmy Self</p>
-
-    <div class="prep-credits" aria-label="Credits">
-      <h2>Créditos</h2>
-      <ul>
-        <li><strong>Creador del proyecto:</strong> Jimmy Self</li>
-        <li><strong>Ayudante:</strong> AJ Cornell</li>
-        <li><strong>Diseño y Arte:</strong> José García</li>
-        <li><strong>Visuales:</strong> María Flores</li>
-        <li><strong>Audio:</strong> Jimmy Self</li>
-        <li><strong>Asesor de producción:</strong> Prof. Eduardo De León</li>
-        <li><strong>Actores:</strong> A.J. Cornell, Rachel Cornell</li>
-      </ul>
-    </div>
-  </div>
-</div>
-
-
-<div id="lessonBadge" class="lesson-number-badge" aria-label="Lesson number"></div>
-
-<header id="banner">Director</header>
-
-<main>
-  <div id="stationGrid" class="station-grid" aria-label="Phone learning stations"></div>
-</main>
-
-<div id="pbar" class="zipbutton" aria-label="Program buttons">
-  <div class="buttonz" data-btn="continue" title="Advance to next page">
-    <img src="../trigger/adelante.jpg" alt="Advance">
-  </div>
-  <div class="buttonz" data-btn="exit" title="Exit" onclick="window.location.assign('../quit.html');">
-    <img src="../trigger/exit.jpg" alt="Exit">
-  </div>
-  <div class="buttonz" data-btn="choosel" title="Choose lesson">
-    <img src="../trigger/choosel.jpg" alt="Choose lesson">
-  </div>
-  <div class="buttonz" data-btn="help" title="Help / guidelines">
-    <img src="../trigger/help.jpg" alt="Help">
-  </div>
-  <div class="buttonz" data-btn="donate" title="Donate">
-    <img src="../trigger/donate.jpg" alt="Donate">
-  </div>
-    <div class="buttonz" data-btn="email" title="Contact Jimmy Lucky">
-    <img src="../trigger/email.jpg" alt="Email">
-  </div>
- <div class="buttonz" data-btn="characters" title="Characters / La Gente">
-    <img src="../trigger/lagente.jpg" alt="La Gente">
-</div>
-  <div class="buttonz" data-btn="translate" title="Translation">
-    <img src="../trigger/translate.jpg" alt="Translate">
-  </div>
-</div>
-
-<div id="contactOverlay" class="contact-overlay" hidden>
-  <div class="contact-box">
-    <h2>Email Contact</h2>
-    <p>Please send your message to:</p>
-    <p class="contact-address">spanishsoundbites@gmail.com</p>
-    <button type="button" onclick="closeContactOverlay()">Close</button>
-  </div>
-</div>
-<audio id="player" preload="auto"></audio>
-
 <script>
-(function(){
-  // ----- Layout comes only from stationStorage written by structure.html -----
-  const stationStorageRaw = sessionStorage.getItem("stationStorage");
-  let stationStorage = null;
+(function () {
+  let selectedLesson = readStoredLesson();
+  let selectedPronounId = null;
+  let selectedBox = null;
+  let currentAudio = [];
+  let creditsTransitionLocked = false;
+  let creditsTransitionTimer = null;
 
-  function showStationStorageError(message){
-    const main = document.querySelector("main");
-    if (main) {
-      main.innerHTML = `<div class="station-error"><strong>Structure error</strong><br>${message}<br><br>Open <strong>structure.html</strong> first so it can place the phone stations into session storage.</div>`;
-    }
-    throw new Error(message);
-  }
-
-  if (!stationStorageRaw) {
-    showStationStorageError("No stationStorage information reached conductor.html.");
-  }
-
-  try {
-    stationStorage = JSON.parse(stationStorageRaw);
-  } catch (err) {
-    showStationStorageError("stationStorage exists, but it is not valid JSON.");
-  }
-
-  if (!stationStorage || !Array.isArray(stationStorage.stations) || !stationStorage.stations.length) {
-    showStationStorageError("stationStorage does not contain a usable stations list.");
-  }
-
-  const exprIds = Array.isArray(stationStorage.expressionPronounIds)
-    ? stationStorage.expressionPronounIds.map(Number)
-    : [];
-
-  const tense  = sessionStorage.getItem("tense")  || "now";
-  let lesson = Number(
-    sessionStorage.getItem("lesson") ||
-    sessionStorage.getItem("selectedLesson") ||
-    sessionStorage.getItem("currentLesson") ||
-    "1"
-  );
-  if (!lesson || Number.isNaN(lesson)) lesson = 1;
-  sessionStorage.setItem("lesson", String(lesson));
-  sessionStorage.setItem("selectedLesson", String(lesson));
-
-  const basePath = `../group/lesson${lesson}`;
-  document.getElementById("banner").textContent = "";
-  const lessonBadge = document.getElementById("lessonBadge");
-  if (lessonBadge) lessonBadge.textContent = String(lesson);
-
-  // ----- Paths -----
-  // Strict modular JPG version:
-  // Images are loaded only from the new split lesson folders.
-  // No PNG fallback. No old single-folder fallback. No JPEG alternate.
-  // If a JPG is missing or misnamed, the tile displays a clear missing-file label.
-  const ASSET_VERSION = "clean-sps-strict-jpg-20260624";
-  const imgPath = path => `${path}?v=${ASSET_VERSION}`;
-
-  const pronImg = i => imgPath(`${basePath}/pronouns/images/p${i}.jpg`);
-  const objImg  = i => imgPath(`${basePath}/objects/images/p${i}.jpg`);
-  const pronAud = i => [
-    `${basePath}/pronouns/audios/a${i}.m4a`,
-    `${basePath}/sound/${i + 10}.m4a`,
-    `${basePath}/sound/${i}.m4a`
-  ];
-  const objAud  = i => [
-    `${basePath}/objects/audios/a${i}.m4a`,
-    `${basePath}/sound/${i}.m4a`
+  const VERBS = [
+    "Tener", "Querer", "Decir", "Estar", "Necesitar",
+    "Ir", "Saber", "Venir", "Comer", "Tomar", "Hablar",
+    "Ver", "Ser", "Poder", "Vivir", "Haber", "Dar", "Poner",
+    "Hacer", "Quedar"
   ];
 
-
-  // ----- Conversation-circle audio paths -----
-  // Francisco uses expression pronoun P8, Rachel uses expression pronoun P9.
-  // These IDs are read from the structure station storage.
-  const FRANCISCO_EXPRESSION_ID = exprIds[0] || 8;
-  const RACHEL_EXPRESSION_ID = exprIds[1] || 9;
-
-  function conversationAud(speaker, role, number){
-    const shortSpeaker = speaker === "francisco" ? "f" : "r";
-    const shortRole = role === "statement" ? "s" : "reply";
-
-    return [
-      `${basePath}/conversation/${speaker}_${role}_${number}.m4a`,
-      `${basePath}/conversation/${speaker}-${role}-${number}.m4a`,
-      `${basePath}/conversation/${shortSpeaker}_${shortRole}_${number}.m4a`,
-      `${basePath}/conversation/${shortSpeaker}${shortRole}${number}.m4a`,
-      `${basePath}/conversation/${speaker}${number}.m4a`,
-      `${basePath}/conversation/${shortSpeaker}${number}.m4a`
-    ];
+  function lessonVerb(n) {
+    return VERBS[Number(n) - 1] || "";
   }
 
-  function buildConversationItems(){
-    const items = [];
-
-    for (let i = 1; i <= 15; i++) {
-      items.push({ speakerId: FRANCISCO_EXPRESSION_ID, sources: conversationAud("francisco", "statement", i) });
-      items.push({ speakerId: RACHEL_EXPRESSION_ID, sources: conversationAud("rachel", "reply", i) });
-    }
-
-    for (let i = 1; i <= 15; i++) {
-      items.push({ speakerId: RACHEL_EXPRESSION_ID, sources: conversationAud("rachel", "statement", i) });
-      items.push({ speakerId: FRANCISCO_EXPRESSION_ID, sources: conversationAud("francisco", "reply", i) });
-    }
-
-    return items;
+  function levelBadgeHTML(n) {
+    const verb = lessonVerb(n);
+    return '<div class="level-label">Level ' + n + '</div>' +
+           '<div class="level-verb">' + verb + '</div>';
   }
 
-  // ----- Tile builder -----
-  function makeTile(srcList, fallbackLabel, station){
-    const sources = Array.isArray(srcList) ? srcList : [srcList];
-    let srcIndex = 0;
+  const MINIMUM_CREDITS_DELAY_MS = 2000; // Two-second opening delay
+  const CREDITS_HTML = `<li><strong>Project Assistant:</strong> AJ Cornell</li>
+      <li><strong>Male Voice:</strong> Jimmy Self</li>
+      <li><strong>Female Voice:</strong> Reina Maldonado</li>
+      <li><strong>Actors:</strong></li>
+      <li><strong></strong>-   Jose Garcia</li>
+      <li><strong></strong>-   Susana Mejia</li>
+      <li><strong></strong>-   Maria Flores</li>
+      <li><strong></strong>-   Lucia Garcia</li>
+      <li><strong></strong>-   Roberto Gomez</li>
+      <li><strong></strong>-   Noel Romero</li>
+      <li><strong></strong>-   AJ Cornell</li>`;
 
-    const d = document.createElement("div");
-    d.className = "tile";
-    d.dataset.group = station.group;
-    d.dataset.index = String(station.id);
-    d.dataset.station = station.station || "";
-    d.dataset.shape = station.shape || "rectangle";
-    d.dataset.kind = station.kind || "";
-    d.style.gridRow = String(station.row);
-    d.style.gridColumn = station.gridColumn;
+  function showCreditsOverlay() {
+    const oldOverlay = document.getElementById("creditsOverlay");
+    if (oldOverlay) oldOverlay.remove();
 
-    const img = document.createElement("img");
-    img.alt = fallbackLabel;
+    const overlay = document.createElement("div");
+    overlay.id = "creditsOverlay";
+    overlay.setAttribute("aria-live", "polite");
+
+    const card = document.createElement("div");
+    card.id = "creditsCard";
+    card.innerHTML = '<h1>Créditos</h1><ul>' + CREDITS_HTML + '</ul>';
+
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+  }
+
+  function hideCreditsOverlay() {
+    const overlay = document.getElementById("creditsOverlay");
+    if (overlay) overlay.remove();
+  }
+
+  function runAfterCredits(callback) {
+    if (creditsTransitionLocked) return;
+
+    creditsTransitionLocked = true;
+    showCreditsOverlay();
+    window.clearTimeout(creditsTransitionTimer);
+
+    creditsTransitionTimer = window.setTimeout(() => {
+      hideCreditsOverlay();
+      creditsTransitionLocked = false;
+      if (typeof callback === "function") callback();
+    }, MINIMUM_CREDITS_DELAY_MS);
+  }
+
+  function startAfterCredits() {
+    runAfterCredits(boot);
+  }
+
+  function readStoredLesson() {
+    const stored =
+      sessionStorage.getItem("selectedLesson") ||
+      sessionStorage.getItem("lesson") ||
+      sessionStorage.getItem("currentLesson") ||
+      "1";
+    const n = Number(stored);
+    return Number.isFinite(n) && n >= 1 && n <= 20 ? n : 1;
+  }
+
+  function saveLesson(n) {
+    selectedLesson = n;
+    sessionStorage.setItem("level", String(n));
+    sessionStorage.setItem("selectedLesson", String(n));
+    sessionStorage.setItem("currentLesson", String(n));
+    sessionStorage.setItem("platicaMode", "desktop");
+    if (!sessionStorage.getItem("tense")) sessionStorage.setItem("tense", "now");
+  }
+
+  function go404(reason) {
+    try { sessionStorage.setItem("conductorError", reason || "Missing desktop structure data"); } catch(e) {}
+    window.location.replace("structure.html");
+  }
+
+  function parseStoredJSON(key, fallback) {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return fallback;
+    try { return JSON.parse(raw); }
+    catch (e) { return fallback; }
+  }
+
+  function readRequiredDesktopSlots() {
+    const slots = parseStoredJSON("desktopSlots", null);
+
+    if (!Array.isArray(slots) || slots.length === 0) {
+      go404("Missing or empty sessionStorage key: desktopSlots");
+      return null;
+    }
+
+    const valid = slots.every(slot => {
+      if (!slot || typeof slot !== "object") return false;
+      if (slot.group !== "pronouns" && slot.group !== "objects") return false;
+      if (slot.role && slot.role !== "pronoun" && slot.role !== "object" && slot.role !== "expression") return false;
+      if (!Number.isFinite(Number(slot.id))) return false;
+      if (slot.shape === "circle") {
+        return Number.isFinite(Number(slot.x)) &&
+               Number.isFinite(Number(slot.y)) &&
+               Number.isFinite(Number(slot.size));
+      }
+      return ["x", "y", "w", "h"].every(k => Number.isFinite(Number(slot[k])));
+    });
+
+    if (!valid) {
+      go404("desktopSlots has an invalid slot structure");
+      return null;
+    }
+
+    return slots;
+  }
+
+  function readRequiredButtons() {
+    const buttons = parseStoredJSON("buttonSlots", null);
+
+    if (!Array.isArray(buttons) || buttons.length === 0) {
+      go404("Missing or empty sessionStorage key: buttonSlots");
+      return null;
+    }
+
+    const valid = buttons.every(btn => {
+      return btn &&
+             typeof btn === "object" &&
+             typeof btn.action === "string" &&
+             typeof btn.img === "string" &&
+             typeof btn.title === "string";
+    });
+
+    if (!valid) {
+      go404("buttonSlots has an invalid button structure");
+      return null;
+    }
+
+    return buttons;
+  }
+
+  function styleConfig() {
+    return parseStoredJSON("desktopStyle", {}) || {};
+  }
+
+  function applyDesktopStyle(style) {
+    document.body.style.background = style.bodyBackground || "#f0f8ff";
+
+    const structure = document.getElementById("structure");
+    const board = document.getElementById("board");
+    const pbar = document.getElementById("pbar");
+    const nivelcircle = document.getElementById("nivelcircle");
+
+    structure.style.background = style.bodyBackground || "#f0f8ff";
+
+    board.style.top = style.boardTop || "0.5vh";
+    board.style.bottom = style.boardBottom || "8.7vh";
+
+    pbar.style.bottom = style.buttonBarBottom || "2vh";
+    pbar.style.gap = style.buttonGap || "0.4vw";
+
+    document.querySelectorAll(".buttonz").forEach(btn => {
+      btn.style.width = style.buttonWidth || "min(10.5vw, 118px)";
+      btn.style.height = style.buttonHeight || "min(5.2vh, 42px)";
+      btn.style.minWidth = style.buttonMinWidth || "64px";
+      btn.style.minHeight = style.buttonMinHeight || "30px";
+      btn.style.background = style.buttonBackground || "#d05000";
+    });
+
+    nivelcircle.style.left = "50vw";
+nivelcircle.style.right = "auto";
+nivelcircle.style.bottom = "11vh";
+nivelcircle.style.transform = "translateX(-50%)";
+    document.querySelectorAll(".selected").forEach(el => {
+      el.style.outline = style.selectedOutline || "5px solid red";
+    });
+  }
+
+  function jpgOnlyPath(src) {
+    let value = String(src || "").replace(/\.(?:p)(?:n)(?:g)(?=([?#]|$))/gi, ".jpg");
+
+    // If structure stored trigger paths as root-level "trigger/...",
+    // conductor.html is one folder lower in /platicadesktop/, so step up once.
+    if (/^trigger\//i.test(value)) {
+      value = "../" + value;
+    }
+
+    return value;
+  }
+
+  function triggerButtonCandidates(src) {
+    const raw = String(src || "").replace(/\\/g, "/");
+    const file = raw.split("/").pop() || "";
+    const base = (file.split("?")[0].split("#")[0]).replace(/\.[^.]+$/, "");
+    const name = base || raw.replace(/\.[^.]+$/, "");
+    const roots = ["../trigger", "../../trigger", "trigger"];
+    const exts = ["jpg", "png", "jpeg"];
+    const list = [];
+
+    // Try the path provided by structure first, after converting png to jpg.
+    const direct = jpgOnlyPath(src);
+    if (direct) list.push(direct);
+
+    roots.forEach(root => {
+      exts.forEach(ext => list.push(root + "/" + name + "." + ext));
+    });
+
+    return list.filter((path, index, arr) => path && arr.indexOf(path) === index);
+  }
+
+  function setTriggerButtonImage(img, src) {
+    const paths = triggerButtonCandidates(src);
+    let index = 0;
 
     img.onerror = () => {
-      srcIndex += 1;
-      if (srcIndex < sources.length) {
-        img.src = sources[srcIndex];
+      index += 1;
+      if (index < paths.length) {
+        img.src = paths[index];
       } else {
-        d.innerHTML = `<div class="label">missing:\n${fallbackLabel}</div>`;
+        console.warn("Missing trigger button image:", src, paths);
       }
     };
 
-    img.src = sources[srcIndex];
-    d.appendChild(img);
-    return d;
-  }
-
-  // ----- Build tiles exactly from stationStorage -----
-  const stationGrid = document.getElementById("stationGrid");
-  const expressionTilesByIndex = {};
-
-  stationStorage.stations.forEach(station => {
-    if (!station || !station.group || !station.id || !station.row || !station.gridColumn) {
-      showStationStorageError("A station entry is incomplete.");
-    }
-
-    const src = station.group === "pronouns" ? pronImg(Number(station.id)) : objImg(Number(station.id));
-    const folderLabel = station.group === "pronouns" ? "pronouns/images" : "objects/images";
-    const tile = makeTile(src, `${folderLabel}/p${station.id}.jpg`, station);
-
-    if (station.group === "pronouns" && isExpressionPronoun(Number(station.id))) {
-      expressionTilesByIndex[Number(station.id)] = tile;
-    }
-
-    stationGrid.appendChild(tile);
-  });
-
-  // ----- Audio logic: no overlaps, serial uniting -----
-  const player = document.getElementById("player");
-  let lastPronSrc = null;
-  let lastPronJoinable = false;
-  let playToken = 0;
-
-  function isExpressionPronoun(index){
-    // A8 and A9 are expression audios.
-    // They must always play alone and must never be saved for joining with objects.
-    return index === 8 || index === 9 || exprIds.includes(index);
-  }
-
-  function playSequence(sources){
-    clearExpressionHighlights();
-    playToken++;
-    const myToken = playToken;
-    let i = 0;
-
-    function playOne(srcList){
-      const choices = Array.isArray(srcList) ? srcList : [srcList];
-      let choiceIndex = 0;
-
-      function tryChoice(){
-        if (myToken !== playToken) return;
-        if (choiceIndex >= choices.length) {
-          next();
-          return;
-        }
-
-        const src = choices[choiceIndex++];
-        player.onerror = tryChoice;
-        player.src = src;
-        player.currentTime = 0;
-        player.play().catch(err => {
-          console.log("play failed:", err);
-        });
-      }
-
-      tryChoice();
-    }
-
-    function next(){
-      if (myToken !== playToken) return;
-      if (i >= sources.length) return;
-      playOne(sources[i++]);
-    }
-
-    player.onended = () => {
-      if (myToken !== playToken) return;
-      next();
-    };
-
-    next();
+    img.src = paths[index] || "";
   }
 
 
-  function clearExpressionHighlights(){
-    Object.values(expressionTilesByIndex).forEach(tile => tile.classList.remove("speaking"));
+  function buildContactOverlay() {
+    const overlay = document.createElement("div");
+    overlay.id = "contactOverlay";
+    overlay.className = "contact-overlay";
+    overlay.hidden = true;
+
+    const box = document.createElement("div");
+    box.className = "contact-box";
+    box.innerHTML =
+      '<h2>Contact</h2>' +
+      '<p>Spanish Sound Mindset</p>' +
+      '<p>You can contact me here:</p>' +
+      '<p class="contact-address">spanishsoundbites@gmail.com</p>';
+
+    const close = document.createElement("button");
+    close.type = "button";
+    close.textContent = "Close";
+    close.addEventListener("click", closeContactOverlay);
+
+    box.appendChild(close);
+    overlay.appendChild(box);
+
+    overlay.addEventListener("click", ev => {
+      if (ev.target === overlay) closeContactOverlay();
+    });
+
+    return overlay;
   }
 
-  function markExpressionSpeaker(speakerId){
-    clearExpressionHighlights();
-    const tile = expressionTilesByIndex[speakerId];
-    if (tile) tile.classList.add("speaking");
+  function openContactOverlay() {
+    const overlay = document.getElementById("contactOverlay");
+    if (overlay) overlay.hidden = false;
   }
 
-  // Conversation stepping: one click plays one two-part exchange, then stops.
-  // The exchanges are shuffled, so the student does not hear 1,2,3,4 every time.
-  // After every exchange in the active set has been used once, the shuffle bag refills
-  // and a new random round begins automatically.
-  //
-  // For the current Lesson 1 trial, this is set to false because you have
-  // Francisco statements + Rachel replies prepared.
-  // Later, after Rachel statements + Francisco replies are recorded, change this to true.
-  const USE_RACHEL_STATEMENT_ROUND = false;
-
-  let conversationShuffleBag = [];
-
-  function buildConversationPairs(){
-    const pairs = [];
-
-    // Francisco asks / Rachel replies: 15 two-part exchanges.
-    for (let i = 1; i <= 15; i++) {
-      pairs.push([
-        { speakerId: FRANCISCO_EXPRESSION_ID, sources: conversationAud("francisco", "statement", i) },
-        { speakerId: RACHEL_EXPRESSION_ID, sources: conversationAud("rachel", "reply", i) }
-      ]);
-    }
-
-    // Rachel asks / Francisco replies: second 15 exchanges.
-    // Turn this on after those 30 additional audio files exist.
-    if (USE_RACHEL_STATEMENT_ROUND) {
-      for (let i = 1; i <= 15; i++) {
-        pairs.push([
-          { speakerId: RACHEL_EXPRESSION_ID, sources: conversationAud("rachel", "statement", i) },
-          { speakerId: FRANCISCO_EXPRESSION_ID, sources: conversationAud("francisco", "reply", i) }
-        ]);
-      }
-    }
-
-    return pairs;
+  function closeContactOverlay() {
+    const overlay = document.getElementById("contactOverlay");
+    if (overlay) overlay.hidden = true;
   }
 
-  function shuffleArray(items){
-    for (let i = items.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      const temp = items[i];
-      items[i] = items[j];
-      items[j] = temp;
-    }
-    return items;
+  const PAYPAL_DONATION_URL = "https://www.paypal.com/donate/?business=584TTG6ZNGVYY&no_recurring=0&item_name=Support+Spanish+Sound+Bites%2C+a+free+Spanish+learning+project.&currency_code=USD";
+  const PAYPAL_BUSINESS_ID = "584TTG6ZNGVYY";
+  const PAYPAL_DONATION_MESSAGE = "Support Spanish Sound Bites, a free Spanish learning project.";
+  let paypalDonateRendered = false;
+  let paypalDonateScriptLoading = false;
+
+  function buildDonateOverlay() {
+    const overlay = document.createElement("div");
+    overlay.id = "donateOverlay";
+    overlay.className = "donate-overlay";
+    overlay.hidden = true;
+
+    const box = document.createElement("div");
+    box.className = "donate-box";
+    box.innerHTML =
+      '<h2>Donación</h2>' +
+      '<p>If Spanish Sound Bites helps you, a small donation helps keep it free.</p>' +
+      '<div id="paypalDonateButtonContainer" aria-label="PayPal donate button">Loading PayPal...</div>' +
+      '<p style="font-size:.92rem;">PayPal should open as a popup over this page. If your browser blocks it, use the backup link.</p>' +
+      '<a class="donate-fallback" href="' + PAYPAL_DONATION_URL + '" target="_blank" rel="noopener">Backup PayPal link</a>';
+
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "donate-close";
+    close.textContent = "Close";
+    close.addEventListener("click", closeDonateOverlay);
+
+    box.appendChild(close);
+    overlay.appendChild(box);
+
+    overlay.addEventListener("click", ev => {
+      if (ev.target === overlay) closeDonateOverlay();
+    });
+
+    return overlay;
   }
 
-  function refillConversationShuffleBag(){
-    conversationShuffleBag = shuffleArray(buildConversationPairs());
+  function ensureDonateOverlay() {
+    let overlay = document.getElementById("donateOverlay");
+    if (!overlay) {
+      overlay = buildDonateOverlay();
+      document.body.appendChild(overlay);
+    }
+    return overlay;
   }
 
-  function playRandomConversationPair(){
-    if (!conversationShuffleBag.length) {
-      refillConversationShuffleBag();
-    }
-
-    if (!conversationShuffleBag.length) return;
-
-    const pairItems = conversationShuffleBag.shift();
-    playConversationPairOnly(pairItems);
-  }
-
-  function playConversationPairOnly(items){
-    playToken++;
-    const myToken = playToken;
-    let i = 0;
-
-    try { player.pause(); } catch(e) {}
-    player.onended = null;
-    player.onerror = null;
-
-    function stopPair(){
-      if (myToken !== playToken) return;
-      player.onended = null;
-      player.onerror = null;
-      clearExpressionHighlights();
-    }
-
-    function playOne(item){
-      const choices = Array.isArray(item.sources) ? item.sources : [item.sources];
-      let choiceIndex = 0;
-      markExpressionSpeaker(item.speakerId);
-
-      function tryChoice(){
-        if (myToken !== playToken) return;
-        if (choiceIndex >= choices.length) {
-          next();
-          return;
-        }
-
-        const src = choices[choiceIndex++];
-        player.onerror = tryChoice;
-        player.src = src;
-        player.currentTime = 0;
-        player.play().catch(err => {
-          console.log("conversation play failed:", err);
-          tryChoice();
-        });
-      }
-
-      tryChoice();
-    }
-
-    function next(){
-      if (myToken !== playToken) return;
-      if (i >= items.length) {
-        stopPair();
-        return;
-      }
-      playOne(items[i++]);
-    }
-
-    player.onended = () => {
-      if (myToken !== playToken) return;
-      next();
-    };
-
-    next();
-  }
-
-  // ----- Click handling -----
-  document.addEventListener("click", ev => {
-    const el = ev.target.closest(".tile[data-group][data-index]");
-    if (!el) return;
-
-    const group = el.dataset.group;
-    const index = Number(el.dataset.index);
-
-    if (group === "pronouns") {
-      const src = pronAud(index);
-
-      if (isExpressionPronoun(index)) {
-        lastPronSrc = null;
-        lastPronJoinable = false;
-        playRandomConversationPair();
-      } else {
-        lastPronSrc = src;
-        lastPronJoinable = true;
-        playSequence([src]);
-      }
+  function loadPayPalDonateSDK(callback) {
+    if (window.PayPal && window.PayPal.Donation && window.PayPal.Donation.Button) {
+      callback();
       return;
     }
 
-if (group === "objects") {
-  const srcObj = objAud(index);
+    if (paypalDonateScriptLoading) {
+      window.setTimeout(() => loadPayPalDonateSDK(callback), 120);
+      return;
+    }
 
-  if (lastPronSrc && lastPronJoinable) {
-    // First click after a pronoun: play united phrase
-    playSequence([lastPronSrc, srcObj]);
-
-    // Then clear the saved pronoun so the NEXT object click is simple
-    lastPronSrc = null;
-    lastPronJoinable = false;
-  } else {
-    // No active pronoun: play only the object audio
-    playSequence([srcObj]);
-  }
-  return;
-}
-  
-  });
-
-})();
-</script>
-
-<script>
-function openContactOverlay(){
-  const overlay = document.getElementById("contactOverlay");
-  if (overlay) overlay.hidden = false;
-}
-
-function closeContactOverlay(){
-  const overlay = document.getElementById("contactOverlay");
-  if (overlay) overlay.hidden = true;
-}
-</script>
-
-
-<script>
-// ----- Button 5 donation overlay -----
-// Same PayPal popup overlay pattern used by the Plática conductors.
-const PAYPAL_DONATION_URL = "https://www.paypal.com/donate/?business=584TTG6ZNGVYY&no_recurring=0&item_name=Support+Spanish+Sound+Bites%2C+a+free+Spanish+learning+project.&currency_code=USD";
-const PAYPAL_BUSINESS_ID = "584TTG6ZNGVYY";
-const PAYPAL_DONATION_MESSAGE = "Support Spanish Sound Bites, a free Spanish learning project.";
-let paypalDonateRendered = false;
-let paypalDonateScriptLoading = false;
-
-function buildDonateOverlay(){
-  const overlay = document.createElement("div");
-  overlay.id = "donateOverlay";
-  overlay.className = "donate-overlay";
-  overlay.hidden = true;
-
-  const box = document.createElement("div");
-  box.className = "donate-box";
-  box.innerHTML =
-    '<h2>Donación</h2>' +
-    '<p>If Spanish Sound Bites helps you, a small donation helps keep it free.</p>' +
-    '<div id="paypalDonateButtonContainer" aria-label="PayPal donate button">Loading PayPal...</div>' +
-    '<p style="font-size:.92rem;">PayPal should open as a popup over this page. If your browser blocks it, use the backup link.</p>' +
-    '<a class="donate-fallback" href="' + PAYPAL_DONATION_URL + '" target="_blank" rel="noopener">Backup PayPal link</a>';
-
-  const close = document.createElement("button");
-  close.type = "button";
-  close.className = "donate-close";
-  close.textContent = "Close";
-  close.addEventListener("click", closeDonateOverlay);
-
-  box.appendChild(close);
-  overlay.appendChild(box);
-
-  overlay.addEventListener("click", ev => {
-    if (ev.target === overlay) closeDonateOverlay();
-  });
-
-  return overlay;
-}
-
-function ensureDonateOverlay(){
-  let overlay = document.getElementById("donateOverlay");
-  if (!overlay) {
-    overlay = buildDonateOverlay();
-    document.body.appendChild(overlay);
-  }
-  return overlay;
-}
-
-function loadPayPalDonateSDK(callback){
-  if (window.PayPal && window.PayPal.Donation && window.PayPal.Donation.Button) {
-    callback();
-    return;
+    paypalDonateScriptLoading = true;
+    const script = document.createElement("script");
+    script.src = "https://www.paypalobjects.com/donate/sdk/donate-sdk.js";
+    script.charset = "UTF-8";
+    script.onload = () => {
+      paypalDonateScriptLoading = false;
+      callback();
+    };
+    script.onerror = () => {
+      paypalDonateScriptLoading = false;
+      const container = document.getElementById("paypalDonateButtonContainer");
+      if (container) container.textContent = "PayPal could not load. Please use the backup link.";
+    };
+    document.head.appendChild(script);
   }
 
-  if (paypalDonateScriptLoading) {
-    window.setTimeout(() => loadPayPalDonateSDK(callback), 120);
-    return;
-  }
+  function renderPayPalDonateButton() {
+    if (paypalDonateRendered) return;
 
-  paypalDonateScriptLoading = true;
-  const script = document.createElement("script");
-  script.src = "https://www.paypalobjects.com/donate/sdk/donate-sdk.js";
-  script.charset = "UTF-8";
-  script.onload = () => {
-    paypalDonateScriptLoading = false;
-    callback();
-  };
-  script.onerror = () => {
-    paypalDonateScriptLoading = false;
     const container = document.getElementById("paypalDonateButtonContainer");
-    if (container) container.textContent = "PayPal could not load. Please use the backup link.";
-  };
-  document.head.appendChild(script);
-}
+    if (!container) return;
 
-function renderPayPalDonateButton(){
-  if (paypalDonateRendered) return;
+    container.textContent = "";
 
-  const container = document.getElementById("paypalDonateButtonContainer");
-  if (!container) return;
+    try {
+      PayPal.Donation.Button({
+        env: "production",
+        business: PAYPAL_BUSINESS_ID,
+        item_name: PAYPAL_DONATION_MESSAGE,
+        currency_code: "USD",
+        image: {
+          src: "https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif",
+          title: "PayPal - The safer, easier way to pay online!",
+          alt: "Donate with PayPal button"
+        },
+        onComplete: function () {
+          closeDonateOverlay();
+        }
+      }).render("#paypalDonateButtonContainer");
 
-  container.textContent = "";
+      paypalDonateRendered = true;
+    } catch (err) {
+      console.warn("PayPal Donate SDK render failed:", err);
+      container.textContent = "PayPal could not start. Please use the backup link.";
+    }
+  }
 
-  try {
-    PayPal.Donation.Button({
-      env: "production",
-      business: PAYPAL_BUSINESS_ID,
-      item_name: PAYPAL_DONATION_MESSAGE,
-      currency_code: "USD",
-      image: {
-        src: "https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif",
-        title: "PayPal - The safer, easier way to pay online!",
-        alt: "Donate with PayPal button"
-      },
-      onComplete: function(){
-        closeDonateOverlay();
+  function openDonateOverlay() {
+    stopAllAudio();
+    const overlay = ensureDonateOverlay();
+    overlay.hidden = false;
+    loadPayPalDonateSDK(renderPayPalDonateButton);
+  }
+
+  function closeDonateOverlay() {
+    const overlay = document.getElementById("donateOverlay");
+    if (overlay) overlay.hidden = true;
+  }
+
+
+  function buildShell(slots, buttons) {
+    document.body.innerHTML = "";
+
+    const structure = document.createElement("div");
+    structure.id = "structure";
+
+    const board = document.createElement("div");
+    board.id = "board";
+    structure.appendChild(board);
+
+    slots.forEach(slot => {
+      const box = document.createElement("div");
+      box.className = "slot" + (slot.shape === "circle" ? " circle" : "");
+      box.dataset.group = slot.group;
+      box.dataset.id = String(slot.id);
+      box.dataset.role = slot.role || (slot.group === "pronouns" ? "pronoun" : "object");
+      box.style.left = Number(slot.x) + "%";
+      box.style.top = Number(slot.y) + "%";
+
+      if (slot.shape === "circle") {
+        const size = Number(slot.size);
+        box.style.width = size + "px";
+        box.style.height = size + "px";
+      } else {
+        box.style.width = Number(slot.w) + "%";
+        box.style.height = Number(slot.h) + "%";
       }
-    }).render("#paypalDonateButtonContainer");
 
-    paypalDonateRendered = true;
-  } catch (err) {
-    console.warn("PayPal Donate SDK render failed:", err);
-    container.textContent = "PayPal could not start. Please use the backup link.";
-  }
-}
+      const img = document.createElement("img");
+      img.alt = (slot.role || slot.group) + " " + slot.id;
+      img.loading = "eager";
+      img.decoding = "async";
+      img.fetchPriority = "high";
+      box.appendChild(img);
+      board.appendChild(box);
+    });
 
-function stopAudioForDonate(){
-  const player = document.getElementById("player");
-  if (player) {
-    player.pause();
-    player.currentTime = 0;
-  }
-}
+    const pbar = document.createElement("div");
+    pbar.id = "pbar";
 
-function openDonateOverlay(){
-  stopAudioForDonate();
-  const overlay = ensureDonateOverlay();
-  overlay.hidden = false;
-  loadPayPalDonateSDK(renderPayPalDonateButton);
-}
+    buttons.forEach(btn => {
+      const b = document.createElement("div");
+      b.className = "buttonz";
+      b.dataset.btn = btn.action;
+      b.title = btn.title;
 
-function closeDonateOverlay(){
-  const overlay = document.getElementById("donateOverlay");
-  if (overlay) overlay.hidden = true;
-}
-</script>
+      const img = document.createElement("img");
+      img.alt = btn.alt || btn.title;
+      setTriggerButtonImage(img, btn.img);
+      b.appendChild(img);
+      pbar.appendChild(b);
+    });
 
-<script>
-// ----- Bottom image-button actions -----
-// This is the working button-study idea, now connected to real conductor actions.
-(function(){
-  const pbar = document.getElementById("pbar");
-  if (!pbar) return;
+    const nivelcircle = document.createElement("div");
+    nivelcircle.id = "nivelcircle";
+    nivelcircle.innerHTML = levelBadgeHTML(selectedLesson);
 
-  function goTo(page){
-    window.location.href = page;
+    document.body.appendChild(structure);
+    document.body.appendChild(pbar);
+    document.body.appendChild(nivelcircle);
+    document.body.appendChild(buildContactOverlay());
   }
 
-  function currentLesson(){
-    const n = Number(sessionStorage.getItem("lesson") || "1");
-    return Number.isFinite(n) && n > 0 ? n : 1;
+  function lessonRoot() {
+    return "../group/lesson" + selectedLesson;
   }
 
-  const actions = {
-    continue(){
-      const lessonNow = currentLesson();
-      const nextLesson = lessonNow + 1;
+  function uniquePaths(paths) {
+    return paths.filter((path, index, arr) => path && arr.indexOf(path) === index);
+  }
 
-      if (nextLesson > 20) {
-        alert("You are already on the last lesson.");
+  function imageExtensions(path) {
+    const value = String(path || "");
+    if (!value) return [];
+
+    return uniquePaths([
+      value,
+      value.replace(/\.jpg(?=([?#]|$))/i, ".jpeg"),
+      value.replace(/\.jpg(?=([?#]|$))/i, ".png")
+    ]);
+  }
+
+  function imageRoots() {
+    // Desktop conductor lives in /platicadesktop/.
+    // Audio already proves ../group/lessonN is the correct main road.
+    // The two extra roots match the proven phone conductor's safety routes.
+    return uniquePaths([
+      lessonRoot(),
+      "../../group/lesson" + selectedLesson,
+      "group/lesson" + selectedLesson
+    ]);
+  }
+
+  function imagePathCandidates(group, id) {
+    const n = Number(id);
+    const paths = [];
+
+    imageRoots().forEach(root => {
+      let baseCandidates = [];
+
+      if (group === "pronouns") {
+        baseCandidates = [
+          root + "/pronouns/images/p" + n + ".jpg",
+          root + "/pronouns/images/img_" + n + ".jpg",
+          root + "/pronouns/image/p" + n + ".jpg",
+          root + "/image/p" + (n + 10) + ".jpg",
+          root + "/image/p" + n + ".jpg"
+        ];
+      } else if (group === "objects") {
+        baseCandidates = [
+          root + "/objects/images/p" + n + ".jpg",
+          root + "/objects/images/img_" + n + ".jpg",
+          root + "/objects/image/p" + n + ".jpg",
+          root + "/objects/image/o" + n + ".jpg",
+          root + "/image/p" + n + ".jpg",
+          root + "/image/o" + n + ".jpg",
+          root + "/image/p" + (n + 9) + ".jpg",
+          root + "/image/p" + (n + 10) + ".jpg"
+        ];
+      } else {
+        baseCandidates = [
+          root + "/" + group + "/images/p" + n + ".jpg",
+          root + "/" + group + "/image/p" + n + ".jpg",
+          root + "/image/p" + n + ".jpg"
+        ];
+      }
+
+      baseCandidates.forEach(path => {
+        paths.push(...imageExtensions(path));
+      });
+    });
+
+    return uniquePaths(paths);
+  }
+
+  function setImageFromCandidates(img, candidates, label) {
+    const sources = Array.isArray(candidates) ? candidates : [candidates];
+    let index = 0;
+
+    img.onerror = () => {
+      index += 1;
+      if (index < sources.length) {
+        img.src = sources[index];
+      } else {
+        console.warn("Missing lesson image:", label || img.alt, sources);
+      }
+    };
+
+    if (sources.length && img.getAttribute("src") !== sources[0]) {
+      img.src = sources[0];
+    }
+  }
+
+  function audioPath(group, id) {
+    return lessonRoot() + "/" + group + "/audios/a" + id + ".m4a";
+  }
+
+  function translationPath() {
+    return "../translation/" + selectedLesson + ".m4a";
+  }
+
+  function stopAllAudio() {
+    currentAudio.forEach(a => {
+      try { a.pause(); a.currentTime = 0; } catch(e) {}
+    });
+    currentAudio = [];
+  }
+
+  function makeAudio(src) {
+    const a = new Audio(src);
+    currentAudio.push(a);
+    a.addEventListener("ended", () => {
+      currentAudio = currentAudio.filter(x => x !== a);
+    });
+    return a;
+  }
+
+  function playOne(src) {
+    stopAllAudio();
+    const a = makeAudio(src);
+    a.play().catch(() => {});
+  }
+
+  function playChain(firstSrc, secondSrc) {
+    stopAllAudio();
+    const a = makeAudio(firstSrc);
+    a.addEventListener("ended", () => {
+      const b = makeAudio(secondSrc);
+      b.play().catch(() => {});
+    }, { once: true });
+    a.play().catch(() => {
+      const b = makeAudio(secondSrc);
+      b.play().catch(() => {});
+    });
+  }
+
+  function clearSelection() {
+    selectedPronounId = null;
+    if (selectedBox) {
+      selectedBox.classList.remove("selected");
+      selectedBox.style.outline = "";
+    }
+    selectedBox = null;
+  }
+
+  function selectPronoun(box, id) {
+    if (selectedBox) {
+      selectedBox.classList.remove("selected");
+      selectedBox.style.outline = "";
+    }
+    selectedPronounId = id;
+    selectedBox = box;
+    box.classList.add("selected");
+    box.style.outline = (styleConfig().selectedOutline || "5px solid red");
+  }
+
+  function fillLessonImages() {
+    selectedLesson = readStoredLesson();
+
+    const nivelcircle = document.getElementById("nivelcircle");
+    if (nivelcircle) nivelcircle.innerHTML = levelBadgeHTML(selectedLesson);
+
+    clearSelection();
+
+    document.querySelectorAll(".slot").forEach(box => {
+      const group = box.dataset.group;
+      const id = Number(box.dataset.id);
+      const img = box.querySelector("img");
+      if (img) setImageFromCandidates(img, imagePathCandidates(group, id), group + " " + id);
+    });
+  }
+
+  function attachSlotBehavior() {
+    document.querySelectorAll(".slot").forEach(box => {
+      box.addEventListener("contextmenu", ev => {
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        const img = box.querySelector("img");
+        if (img && img.src) openImageMagnifier(img.src, img.alt);
+      });
+
+      box.addEventListener("click", () => {
+        const group = box.dataset.group;
+        const role = box.dataset.role;
+        const id = Number(box.dataset.id);
+
+        if (group === "pronouns" && role === "expression") {
+          clearSelection();
+          playOne(audioPath("pronouns", id));
+          return;
+        }
+
+        if (group === "pronouns") {
+          selectPronoun(box, id);
+          playOne(audioPath("pronouns", id));
+          return;
+        }
+
+        if (group === "objects") {
+          if (selectedPronounId) {
+            playChain(audioPath("pronouns", selectedPronounId), audioPath("objects", id));
+            clearSelection();
+          } else {
+            playOne(audioPath("objects", id));
+          }
+        }
+      });
+    });
+  }
+
+
+  function closeImageMagnifier() {
+    const overlay = document.getElementById("imageMagnifyOverlay");
+    if (overlay) overlay.remove();
+  }
+
+  function openImageMagnifier(src, alt) {
+    closeImageMagnifier();
+
+    const overlay = document.createElement("div");
+    overlay.id = "imageMagnifyOverlay";
+
+    const frame = document.createElement("div");
+    frame.id = "imageMagnifyFrame";
+
+    const closeBtn = document.createElement("button");
+    closeBtn.id = "imageMagnifyClose";
+    closeBtn.type = "button";
+    closeBtn.title = "Cerrar imagen ampliada";
+    closeBtn.setAttribute("aria-label", "Cerrar imagen ampliada");
+    closeBtn.textContent = "×";
+
+    const img = document.createElement("img");
+    img.src = src;
+    img.alt = alt || "Imagen ampliada";
+
+    frame.appendChild(closeBtn);
+    frame.appendChild(img);
+    overlay.appendChild(frame);
+    document.body.appendChild(overlay);
+
+    overlay.addEventListener("click", ev => {
+      ev.preventDefault();
+      ev.stopPropagation();
+    });
+
+    overlay.addEventListener("contextmenu", ev => {
+      ev.preventDefault();
+      ev.stopPropagation();
+    });
+
+    frame.addEventListener("click", ev => {
+      ev.preventDefault();
+      ev.stopPropagation();
+    });
+
+    frame.addEventListener("contextmenu", ev => {
+      ev.preventDefault();
+      ev.stopPropagation();
+    });
+
+    closeBtn.addEventListener("click", ev => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      closeImageMagnifier();
+    });
+  }
+
+  function goLessonSelect() {
+    stopAllAudio();
+    window.location.href = "lessonselect.html";
+  }
+
+  function exitProgram() {
+    stopAllAudio();
+    window.location.href = "../stop.html";
+  }
+
+  function nudgeChip() {
+    const nivelcircle = document.getElementById("nivelcircle");
+    if (!nivelcircle) return;
+
+    try {
+      nivelcircle.animate(
+        [{ transform: "scale(1)" }, { transform: "scale(1.06)" }, { transform: "scale(1)" }],
+        { duration: 320, easing: "ease-out" }
+      );
+    } catch(e) {}
+  }
+
+
+  function guidePath() {
+    const path = window.location.pathname.replace(/\\/g, "/");
+
+    // If this conductor is inside platicadesktop or platicaphone,
+    // the guide folder should be one level up.
+    if (/(^|\/)(platicadesktop|platicaphone)\//i.test(path)) {
+      return "../guide/guidelines.html";
+    }
+
+    // If this conductor is being run from the repository root,
+    // the guide folder should be directly beside it.
+    return "guide/guidelines.html";
+  }
+
+  function openGuide() {
+    stopAllAudio();
+    window.location.href = guidePath();
+  }
+
+  function attachButtonBehavior() {
+    document.addEventListener("click", ev => {
+      const btn = ev.target.closest && ev.target.closest(".buttonz");
+      if (!btn) return;
+
+      const action = btn.dataset.btn;
+
+      if (action === "continue") {
+        if (creditsTransitionLocked) return;
+
+        if (selectedLesson < 20) {
+          saveLesson(selectedLesson + 1);
+          stopAllAudio();
+          fillLessonImages();
+          nudgeChip();
+        } else {
+          nudgeChip();
+        }
         return;
       }
 
-      sessionStorage.setItem("lesson", String(nextLesson));
-      sessionStorage.setItem("selectedLesson", String(nextLesson));
-      sessionStorage.setItem("currentLesson", String(nextLesson));
+      if (action === "exit") return exitProgram();
+      if (action === "choosel") return goLessonSelect();
+      if (action === "translate") return playOne(translationPath());
 
-      window.location.href = "structure.html?direct=1&lesson=" + encodeURIComponent(nextLesson) + "&prep=" + Date.now();
-    },
+      if (action === "goback") {
+        window.location.href = "../lagente.html";
+        return;
+      }
 
-    exit(){
-      goTo("../quit.html");
-    },
+      if (action === "email") {
+        openContactOverlay();
+        return;
+      }
 
-    choosel(){
-      goTo("lessonselect.html");
-    },
+      if (action === "help") return openGuide();
+      if (action === "donate") return openDonateOverlay();
+    }, false);
+  }
 
-    help(){
-      const lesson = currentLesson();
+  function boot() {
+    const slots = readRequiredDesktopSlots();
+    const buttons = readRequiredButtons();
+    if (!slots || !buttons) return;
 
-      sessionStorage.setItem("ingles_return_lesson", String(lesson));
-      sessionStorage.setItem("ingles_return_page", "conductor.html");
-      sessionStorage.setItem("ingles_return_lane", "phone");
-      sessionStorage.setItem("lesson", String(lesson));
-      sessionStorage.setItem("selectedLesson", String(lesson));
-      sessionStorage.setItem("currentLesson", String(lesson));
+    buildShell(slots, buttons);
+    applyDesktopStyle(styleConfig());
+    fillLessonImages();
+    attachSlotBehavior();
+    attachButtonBehavior();
+  }
 
-      goTo("../guide/guidelines.html");
-    },
+  window.addEventListener("pagehide", stopAllAudio);
+  window.addEventListener("beforeunload", stopAllAudio);
 
-    email(){
-      openContactOverlay();
-    },
-
-    donate(){
-      openDonateOverlay();
-    },
-
-    characters(){
-      const lesson = currentLesson();
-
-      sessionStorage.setItem("ingles_return_lesson", String(lesson));
-      sessionStorage.setItem("ingles_return_page", "conductor.html");
-      sessionStorage.setItem("ingles_return_lane", "phone");
-      sessionStorage.setItem("lesson", String(lesson));
-      sessionStorage.setItem("selectedLesson", String(lesson));
-      sessionStorage.setItem("currentLesson", String(lesson));
-      sessionStorage.setItem("inglesyaLane", "phone");
-
-      goTo("../lagente.html?lesson=" + encodeURIComponent(lesson) + "&return=phone");
-    },
-
-    translate(){
-      const lesson = currentLesson();
-      const player = document.getElementById("player");
-      if (!player) return;
-
-      // Shared group folder is one level above this conductor.
-      player.src = `../group/lesson${lesson}/translation/a1.m4a`;
-      player.currentTime = 0;
-      player.play().catch(err => console.log("translation play failed:", err));
-    }
-  };
-
-  pbar.addEventListener("click", ev => {
-    const button = ev.target.closest(".buttonz[data-btn]");
-    if (!button) return;
-
-    ev.preventDefault();
-    ev.stopPropagation(); // keeps button clicks from being treated like tile clicks
-
-    const action = actions[button.dataset.btn];
-    if (action) action();
-  });
+  startAfterCredits();
 })();
 </script>
-
-<script>
-
-console.log("Lesson:", lesson);
-console.log("Tense:", tense);
-</script>
-
-
-
-
-<script>
-// ----- Conductor preparation pause -----
-// The lesson select page only chooses the lesson. The visible pause/credits overlay
-// belongs here in conductor.html, where the leveltself is being prepared.
-(function(){
-  const MINIMUM_PREP_DELAY_MS = 2000;
-  let prepTimer = null;
-
-  function overlay(){
-    return document.getElementById("prepOverlay");
-  }
-
-  function showPrepOverlay(){
-    const box = overlay();
-    if (box) box.classList.remove("done");
-  }
-
-  function closePrepOverlay(){
-    const box = overlay();
-    if (box) box.classList.add("done");
-  }
-
-  function runPrepPause(){
-    showPrepOverlay();
-    window.clearTimeout(prepTimer);
-    prepTimer = window.setTimeout(closePrepOverlay, MINIMUM_PREP_DELAY_MS);
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", runPrepPause, { once:true });
-  } else {
-    runPrepPause();
-  }
-
-  // If the browser restores this page from its back/forward memory,
-  // make the overlay behavior reliable again instead of leaving an old hidden state.
-  window.addEventListener("pageshow", function(ev){
-    if (ev.persisted) runPrepPause();
-  });
-})();
-</script>
-
-
-<script>
-// ----- Right-click magnifier -----
-// Right-click any lesson picture to enlarge it.
-// The red X in the upper-right closes the enlarged view.
-(function(){
-  const overlay = document.getElementById("imageMagnifierOverlay");
-  const magnifiedImage = document.getElementById("imageMagnifierImage");
-  const closeButton = document.getElementById("imageMagnifierClose");
-
-  if (!overlay || !magnifiedImage || !closeButton) return;
-
-  function openMagnifier(sourceImage){
-    const src = sourceImage.currentSrc || sourceImage.src;
-    if (!src) return;
-
-    magnifiedImage.src = src;
-    magnifiedImage.alt = sourceImage.alt || "Magnified image";
-    overlay.hidden = false;
-  }
-
-  function closeMagnifier(){
-    overlay.hidden = true;
-    magnifiedImage.removeAttribute("src");
-  }
-
-  document.addEventListener("contextmenu", function(ev){
-    const sourceImage = ev.target.closest(".tile img");
-    if (!sourceImage) return;
-
-    ev.preventDefault();
-    ev.stopPropagation();
-    openMagnifier(sourceImage);
-  });
-
-  closeButton.addEventListener("click", function(ev){
-    ev.preventDefault();
-    ev.stopPropagation();
-    closeMagnifier();
-  });
-
-  // Only the red X button closes the magnified image.
-  // Clicking outside the image no longer closes it.
-  document.addEventListener("keydown", function(ev){
-    if (ev.key === "Escape" && !overlay.hidden) {
-      closeMagnifier();
-    }
-  });
-})();
-</script>
-
 </body>
 </html>

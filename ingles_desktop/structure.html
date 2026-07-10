@@ -253,6 +253,21 @@
     localStorage.getItem("autoStartLevel1") === "yes" ||
     localStorage.getItem("firstTimeStart") === "yes";
 
+  /*
+    Desktop entry routing:
+    - A returning student arriving at structure.html normally must first choose a level.
+    - Only an explicit direct=1 request (from lessonselect or Continue) may open conductor.
+    - The first-time path is also allowed to open Level 1 directly.
+
+    This prevents an old lesson value in storage from bypassing lessonselect.html.
+  */
+  const directToLesson = params.get("direct") === "1";
+
+  if (!directToLesson && !firstTime) {
+    window.location.replace("lessonselect.html");
+    return;
+  }
+
   const n = Number(requestedLesson);
   const lessonToOpen = firstTime ? "1" : (Number.isFinite(n) && n >= 1 && n <= 20 ? String(n) : "1");
 

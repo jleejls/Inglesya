@@ -1,133 +1,162 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>InglesYa Phone Structure - Direct Level Start</title>
-<style>
-  body{
-    margin:0;
-    min-height:100vh;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-family:Arial, Helvetica, sans-serif;
-    background:#ffffff;
-    color:#222;
-  }
-  .message{
-    width:min(92vw,420px);
-    border:1px solid #d0d0d0;
-    border-radius:14px;
-    padding:18px;
-    text-align:center;
-    box-shadow:0 4px 14px rgba(0,0,0,.12);
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plática Desktop Structure</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f0f8ff;
+      color: #111;
+      overflow: hidden;
+    }
+    #structure {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: #f0f8ff;
+    }
+    #board {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0.5vh;
+      bottom: 8.7vh;
+      overflow: hidden;
+    }
+    .preview-slot {
+      position: absolute;
+      border: 1px dashed rgba(0,0,0,.18);
+      background: rgba(255,255,255,.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: rgba(0,0,0,.55);
+      overflow: hidden;
+    }
+    .preview-slot.circle { border-radius: 50%; }
+    .notice {
+      position: fixed;
+      left: 14px;
+      top: 10px;
+      background: rgba(255,255,255,.85);
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 7px 11px;
+      font-weight: 700;
+      z-index: 20;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    }
+  </style>
 </head>
 <body>
-  <div class="message">InglesYa phone structure prepared</div>
+  <div class="notice">Plática desktop structure loaded</div>
+  <div id="structure"><div id="board"></div></div>
 
 <script>
-(function(){
-  // This page defines the phone frame stations. The phone conductor reads
-  // stationStorage and renders exactly these stations.
-  // Layout: 3 pronouns, 4 pronouns, 3 objects, 4 objects, 3 objects, 2 circles.
-  const phoneStructure = {
-    version: "sps-phone-clean-3-4-3-4-3-plus-2-circles-20260624",
-    layoutName: "3-4-3-4-3 + 2 circle frames",
-    gridColumns: 8,
-    rows: [3, 4, 3, 4, 3, 2],
-    expressionPronounIds: [8, 9],
-    stations: [
-      { station:"station-01", group:"pronouns", id:1, row:1, gridColumn:"2 / span 2", shape:"rectangle", kind:"main" },
-      { station:"station-02", group:"pronouns", id:2, row:1, gridColumn:"4 / span 2", shape:"rectangle", kind:"main" },
-      { station:"station-03", group:"pronouns", id:3, row:1, gridColumn:"6 / span 2", shape:"rectangle", kind:"main" },
+(function () {
+  // Plática Desktop optimized blueprint.
+  // Experimental 5-over-4 pronoun layout:
+  // five same-size pronoun frames on the top row,
+  // four same-size pronoun frames centered below,
+  // with expression circles moved into the lower spare row.
 
-      { station:"station-04", group:"pronouns", id:4, row:2, gridColumn:"1 / span 2", shape:"rectangle", kind:"main" },
-      { station:"station-05", group:"pronouns", id:5, row:2, gridColumn:"3 / span 2", shape:"rectangle", kind:"main" },
-      { station:"station-06", group:"pronouns", id:6, row:2, gridColumn:"5 / span 2", shape:"rectangle", kind:"main" },
-      { station:"station-07", group:"pronouns", id:7, row:2, gridColumn:"7 / span 2", shape:"rectangle", kind:"main" },
+  const desktopSlots = [
+    // Object frames: left column, p1-p5 — 5% larger again, equal size, with added spacing
+    { group: "objects",  id: 1,  role: "object",   x: 0.0,  y: 0.0,  w: 12.5, h: 19.8 },
+    { group: "objects",  id: 2,  role: "object",   x: 0.0,  y: 20.1, w: 12.5, h: 19.8 },
+    { group: "objects",  id: 3,  role: "object",   x: 0.0,  y: 40.2, w: 12.5, h: 19.8 },
+    { group: "objects",  id: 4,  role: "object",   x: 0.0,  y: 60.3, w: 12.5, h: 19.8 },
+    { group: "objects",  id: 5,  role: "object",   x: 0.0,  y: 80.4, w: 12.5, h: 19.8 },
 
-      { station:"station-08", group:"objects",  id:1,  row:4, gridColumn:"2 / span 2", shape:"rectangle" },
-      { station:"station-09", group:"objects",  id:2,  row:4, gridColumn:"4 / span 2", shape:"rectangle" },
-      { station:"station-10", group:"objects",  id:3,  row:4, gridColumn:"6 / span 2", shape:"rectangle" },
+    // Object frames: right column, p6-p10 — 5% larger again, equal size, with added spacing
+    { group: "objects",  id: 6,  role: "object",   x: 87.5, y: 0.0,  w: 12.5, h: 19.8 },
+    { group: "objects",  id: 7,  role: "object",   x: 87.5, y: 20.1, w: 12.5, h: 19.8 },
+    { group: "objects",  id: 8,  role: "object",   x: 87.5, y: 40.2, w: 12.5, h: 19.8 },
+    { group: "objects",  id: 9,  role: "object",   x: 87.5, y: 60.3, w: 12.5, h: 19.8 },
+    { group: "objects",  id: 10, role: "object",   x: 87.5, y: 80.4, w: 12.5, h: 19.8 },
 
-      { station:"station-11", group:"objects",  id:4,  row:5, gridColumn:"1 / span 2", shape:"rectangle" },
-      { station:"station-12", group:"objects",  id:5,  row:5, gridColumn:"3 / span 2", shape:"rectangle" },
-      { station:"station-13", group:"objects",  id:6,  row:5, gridColumn:"5 / span 2", shape:"rectangle" },
-      { station:"station-14", group:"objects",  id:7,  row:5, gridColumn:"7 / span 2", shape:"rectangle" },
+    // Pronoun frames: 5 on the top row, 4 on the second row.
+    // All nine pronoun frames use the same size. The second row is centered
+    // under the five-frame row to use the full width while gaining height.
+    { group: "pronouns", id: 1,  role: "pronoun",  x: 12.8, y: 0.4,  w: 14.6, h: 38.0 },
+    { group: "pronouns", id: 2,  role: "pronoun",  x: 27.8, y: 0.4,  w: 14.6, h: 38.0 },
+    { group: "pronouns", id: 3,  role: "pronoun",  x: 42.8, y: 0.4,  w: 14.6, h: 38.0 },
+    { group: "pronouns", id: 4,  role: "pronoun",  x: 57.8, y: 0.4,  w: 14.6, h: 38.0 },
+    { group: "pronouns", id: 5,  role: "pronoun",  x: 72.8, y: 0.4,  w: 14.6, h: 38.0 },
 
-      { station:"station-15", group:"objects",  id:8,  row:6, gridColumn:"2 / span 2", shape:"rectangle" },
-      { station:"station-16", group:"objects",  id:9,  row:6, gridColumn:"4 / span 2", shape:"rectangle" },
-      { station:"station-17", group:"objects",  id:10, row:6, gridColumn:"6 / span 2", shape:"rectangle" },
+    { group: "pronouns", id: 6,  role: "pronoun",  x: 20.3, y: 39.9, w: 14.6, h: 38.0 },
+    { group: "pronouns", id: 7,  role: "pronoun",  x: 35.3, y: 39.9, w: 14.6, h: 38.0 },
+    { group: "pronouns", id: 8,  role: "pronoun",  x: 50.3, y: 39.9, w: 14.6, h: 38.0 },
+    { group: "pronouns", id: 9,  role: "pronoun",  x: 65.3, y: 39.9, w: 14.6, h: 38.0 },
 
-      { station:"station-18", group:"pronouns", id:8, row:7, gridColumn:"3 / span 2", shape:"circle", kind:"expression" },
-      { station:"station-19", group:"pronouns", id:9, row:7, gridColumn:"5 / span 2", shape:"circle", kind:"expression" }
-    ]
+    // Expression circles: moved into the lower spare row.
+    // They can be tuned separately from the nine main pronoun frames.
+    { group: "pronouns", id: 10, role: "expression", shape: "circle", x: 31.2, y: 79.6, size: 108 },
+    { group: "pronouns", id: 11, role: "expression", shape: "circle", x: 60.7, y: 79.6, size: 108 }
+  ];
+
+  const buttonSlots = [
+    { action: "continue",  img: "../trigger/adelante.png",  alt: "Adelante",  title: "Continuar al siguiente nivel" },
+    { action: "exit",      img: "../trigger/exit.png",      alt: "Exit",      title: "Salir del programa" },
+    { action: "choosel",   img: "../trigger/choosel.png",   alt: "Niveles",   title: "Ir a selección de niveles" },
+    { action: "help",      img: "../trigger/help.png",      alt: "Help",      title: "Guidelines" },
+    { action: "donate",    img: "../trigger/donate.png",    alt: "Donate",    title: "Donar" },
+    { action: "email",     img: "../trigger/email.png",     alt: "Email",     title: "Email information" },
+    { action: "goback",    img: "../trigger/goback.png",    alt: "Back",      title: "Volver" },
+    { action: "translate", img: "../trigger/translate.png", alt: "Translate", title: "Traducir" }
+  ];
+
+  const desktopStyle = {
+    bodyBackground: "#f0f8ff",
+    boardTop: "0.5vh",
+    boardBottom: "7.3vh",
+    buttonBarBottom: "2vh",
+    buttonGap: "0.55vw",
+    buttonWidth: "min(6.24vw, 75px)",
+    buttonHeight: "min(5.2vh, 42px)",
+    buttonMinWidth: "56px",
+    buttonMinHeight: "30px",
+    buttonBackground: "#d05000",
+    nivelCircleRight: "4vw",
+    nivelCircleBottom: "11vh",
+    selectedOutline: "5px solid red"
   };
 
-  // Compatibility storage for any older desktop/V2 logic that looks for slots.
-  const pronounSlots = [];
-  for (let i = 1; i <= 9; i++) pronounSlots.push({ id: i, kind: i <= 7 ? "main" : "expression" });
-  const objectSlots = [];
-  for (let i = 1; i <= 10; i++) objectSlots.push({ id: i });
+  sessionStorage.setItem("desktopSlots", JSON.stringify(desktopSlots));
+  sessionStorage.setItem("buttonSlots", JSON.stringify(buttonSlots));
+  sessionStorage.setItem("desktopStyle", JSON.stringify(desktopStyle));
+  sessionStorage.setItem("platicaMode", "desktop");
+  sessionStorage.setItem("desktopMode", "1");
+  sessionStorage.removeItem("phoneMode");
 
-  sessionStorage.setItem("stationStorage", JSON.stringify(phoneStructure));
-  sessionStorage.setItem("pronounSlots", JSON.stringify(pronounSlots));
-  sessionStorage.setItem("objectSlots", JSON.stringify(objectSlots));
-  sessionStorage.setItem("expressionSlots", JSON.stringify([{ id:8 }, { id:9 }]));
-  sessionStorage.setItem("expressionPronounIds", JSON.stringify(phoneStructure.expressionPronounIds));
-  sessionStorage.setItem("inglesyaStructureReady", "true");
-  sessionStorage.setItem("inglesyaLane", "phone");
-  localStorage.setItem("inglesyaLane", "phone");
+  const board = document.getElementById("board");
+  desktopSlots.forEach(slot => {
+    const d = document.createElement("div");
+    d.className = "preview-slot" + (slot.shape === "circle" ? " circle" : "");
+    d.style.left = Number(slot.x) + "%";
+    d.style.top = Number(slot.y) + "%";
+    if (slot.shape === "circle") {
+      d.style.width = Number(slot.size) + "px";
+      d.style.height = Number(slot.size) + "px";
+    } else {
+      d.style.width = Number(slot.w) + "%";
+      d.style.height = Number(slot.h) + "%";
+    }
+    d.textContent = slot.role === "expression" ? "P" + slot.id : (slot.group === "objects" ? "O" + slot.id : "P" + slot.id);
+    board.appendChild(d);
+  });
 
-  if (!sessionStorage.getItem("tense")) sessionStorage.setItem("tense", "now");
-
-  const params = new URLSearchParams(window.location.search);
-  const requestedLesson =
-    params.get("lesson") ||
-    params.get("selectedLesson") ||
-    sessionStorage.getItem("selectedLesson") ||
-    sessionStorage.getItem("lesson") ||
-    sessionStorage.getItem("currentLesson") ||
-    localStorage.getItem("selectedLesson") ||
-    localStorage.getItem("lesson") ||
-    localStorage.getItem("currentLesson") ||
-    "1";
-
-  const firstTime =
-    params.get("firstTime") === "1" ||
-    params.get("autoStartLevel1") === "1" ||
-    sessionStorage.getItem("autoStartLevel1") === "yes" ||
-    sessionStorage.getItem("firstTimeStart") === "yes" ||
-    localStorage.getItem("autoStartLevel1") === "yes" ||
-    localStorage.getItem("firstTimeStart") === "yes";
-
-  const n = Number(requestedLesson);
-  const lessonToOpen = firstTime ? "1" : (Number.isFinite(n) && n >= 1 && n <= 20 ? String(n) : "1");
-
-  // IMPORTANT PHONE REPAIR:
-  // Structure is now the preparation page only. It always writes a fresh
-  // phone layout and then opens the conductor. First-time users do not pass
-  // through any extra pages before Level 1, except the small instruction page.
-  sessionStorage.setItem("lesson", lessonToOpen);
-  sessionStorage.setItem("selectedLesson", lessonToOpen);
-  sessionStorage.setItem("currentLesson", lessonToOpen);
-  sessionStorage.setItem("inglesyaLane", "phone");
-  sessionStorage.setItem("phoneMode", "1");
-  sessionStorage.removeItem("desktopMode");
-  sessionStorage.removeItem("autoStartLevel1");
-  sessionStorage.removeItem("firstTimeStart");
-
-  localStorage.setItem("lesson", lessonToOpen);
-  localStorage.setItem("selectedLesson", lessonToOpen);
-  localStorage.setItem("currentLesson", lessonToOpen);
-  localStorage.setItem("inglesyaLane", "phone");
-  localStorage.removeItem("autoStartLevel1");
-  localStorage.removeItem("firstTimeStart");
-
-  window.location.replace("conductor.html?lesson=" + encodeURIComponent(lessonToOpen) + "&prep=" + Date.now());
+  setTimeout(() => {
+    window.location.href = "lessonselect.html";
+  }, 250);
 })();
 </script>
 </body>
